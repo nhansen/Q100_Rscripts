@@ -1,110 +1,29 @@
-setwd("/Users/nhansen/HG002_diploid_benchmark/PaperFigures")
+setwd("/Users/nhansen/OneDrive/HG002_diploid_benchmark/PaperFigures/Figures")
 
 library(colorspace)
 library(Hmisc)
+
+source("/Users/nhansen/OneDrive/HG002_diploid_benchmark/all_Rscripts/manuscript_analyses_R_scripts/ReadBenchComparisonPlotFunctions.R")
 
 ################
 ### Comparison of new "Vega"and SPQR reads with standard PacBio and Nanopore ###
 ################
 
 outdir <- "Figure4Output"
-#readsetnames <- c("hg002v1.1_hifi_sequelII", "hg002v1.1_hifi_revio_24hr", "hg002v1.1_hifi_revio_30hr", "hg002v1.1_hifi_vega", "hg002v1.1_hifi_vega_24hr", "hg002v1.1_revio_spqr", "hg002v1.1_revio_sprq_30hr")
-#platformlabels <- c("HiFi SequelII", "HiFi Revio 24hr", "HiFi Revio 30hr", "HiFi Vega", "HiFi Vega 24hr", "Revio SPRQ", "Revio SPRQ 30hr")
 readsetnames <- c("hg002v1.1_hifi_revio_24hr", "hg002v1.1_hifi_revio_30hr", "hg002v1.1_hifi_vega", "hg002v1.1_hifi_vega_24hr", "hg002v1.1_revio_spqr", "hg002v1.1_revio_sprq_30hr")
 platformlabels <- c("HiFi Revio 24hr", "HiFi Revio 30hr", "HiFi Vega 24hr/21.8kb", "HiFi Vega 24hr/17.5kb", "SPRQ Revio 24hr", "SPRQ Revio 30hr")
 safe_colorblind_palette <- c("#88CCEE", "#CC6677", "#DDCC77", "#117733", "#332288", "#AA4499", 
                              "#44AA99", "#999933", "#882255", "#661100", "#6699CC", "#888888")
-#readplatformcolors <- c("#6699CC", "#CC6677", "#01541F", "#332288", "#661100", "#5D5D5D")
-#readplatformcolors <- c("#6699CC", "#01541F", "#332288", "#661100", "#5D5D5D", "#CC6677")
 readplatformcolors <- c("#01541F", "#332288", "#661100", "#5D5D5D", "#CC6677", "#999933")
 platformlinetype <- c(1, 2, 3, 4, 5, 6)
 platformpchvals <- c(0, 1, 2, 5, 6, 8)
 filledplatformpchvals <- c(15, 16, 17, 23, 25, 8)
 
-#platformpchvals <- c(15, 17, 19, 3, 2, 0)
-
 title <- ""
 
-qvalues <- function(errorlist, totallist) {
-  qscores <- sapply(seq(1, length(errorlist)), function(x) {return(ifelse(totallist[x]==0, NA, as.numeric(-10.0*log10((errorlist[x]+1)/(totallist[x]+1)))))})
-  return(qscores)
-}
-
-get_qv_counts <- function(file) {
-  qvcounts <- read.table(file, header=FALSE, sep="\t")
-  names(qvcounts) <- c("QVReported", "SNVErrors", "IndelErrors", "TotalBases")
-  
-  qvcounts$SNVObsQV <- qvalues(qvcounts$SNVErrors, qvcounts$TotalBases)
-  snvaccconfints <- binconf(qvcounts$SNVErrors, qvcounts$TotalBases, return.df=TRUE)
-  qvcounts$SNVObsQVHigh <- as.numeric(-10.0*log10(snvaccconfints$Lower+0.0000000001))
-  qvcounts$SNVObsQVLow <- as.numeric(-10.0*log10(snvaccconfints$Upper))
-  
-  qvcounts$IndelObsQV <- qvalues(qvcounts$IndelErrors, qvcounts$TotalBases)
-  indelaccconfints <- binconf(qvcounts$IndelErrors, qvcounts$TotalBases, return.df=TRUE)
-  qvcounts$IndelObsQVHigh <- as.numeric(-10.0*log10(indelaccconfints$Lower+0.0000000001))
-  qvcounts$IndelObsQVLow <- as.numeric(-10.0*log10(indelaccconfints$Upper))
-  
-  qvcounts$TotalObsQV <- qvalues((qvcounts$SNVErrors+qvcounts$IndelErrors), qvcounts$TotalBases)
-  totalaccconfints <- binconf(qvcounts$IndelErrors+qvcounts$SNVErrors, qvcounts$TotalBases, return.df=TRUE)
-  qvcounts$TotalObsQVHigh <- as.numeric(-10.0*log10(totalaccconfints$Lower+0.0000000001))
-  qvcounts$TotalObsQVLow <- as.numeric(-10.0*log10(totalaccconfints$Upper))
-  
-  return(qvcounts)
-}
-
-read_qv_plot <- function(readsetnames, platformlabels, cexfactor=0.06, plottitle="Read QV score accuracy", errorbars=FALSE) {
-  readsetfiles <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".errorqvstats.txt"), sep="", collapse="")})
-  maxqvreported <- 0
-  for (i in seq(1, length(readsetfiles))) {
-    qvcounts <- get_qv_counts(readsetfiles[i])
-    maxreported <- max(qvcounts[qvcounts$TotalBases>0, "QVReported"])
-    if (maxreported > maxqvreported) {
-      maxqvreported <- maxreported
-    }
-  }
-  
-  plot(c(0, maxqvreported), c(0, maxqvreported), type="l", lty=1, main=plottitle, xlab="Reported QV Score", ylab="Observed QV")
-  
-  for (i in seq(1, length(readsetfiles))) {
-    qvcounts <- get_qv_counts(readsetfiles[i])
-    qvcounts <- qvcounts[qvcounts$TotalBases>0, ]
-    points(qvcounts$QVReported, qvcounts$TotalObsQV, type="b", lty=1, pch=filledplatformpchvals[i], col=readplatformcolors[i], bg=readplatformcolors[i])
-    if(errorbars) {
-      arrows(x0=qvcounts$QVReported, y0=qvcounts$TotalObsQVLow, x1=qvcounts$QVReported, y1=qvcounts$TotalObsQVHigh, code=3, angle=90, length=0.05, col=readplatformcolors[i])
-    }
-  }
-  legend(5, maxqvreported-5, platformlabels, pch=filledplatformpchvals, lty=platformlinetype, col=readplatformcolors, pt.bg=readplatformcolors)
-
-}
-
-read_qv_density_plot <- function(readsetfiles, platformlabels, cexfactor=0.06, plottitle=title) {
-  
-  maxqvobserved <- 0
-  for (i in seq(1, length(readsetfiles))) {
-    qvcounts <- get_qv_counts(readsetfiles[i])
-    maxobserved <- max(qvcounts[qvcounts$TotalBases>0, "TotalObsQV"], na.rm=TRUE)
-    if (maxobserved > maxqvobserved) {
-      maxqvobserved <- maxobserved
-    }
-  }
-  
-  firstqvcounts <- get_qv_counts(readsetfiles[1])
-  firstqvcounts <- firstqvcounts[order(firstqvcounts$TotalObsQV), ]
-  plot(firstqvcounts$TotalObsQV, firstqvcounts$TotalBases/sum(firstqvcounts$TotalBases), type="l", lty=2, main=plottitle, xlab="Benchmark QV Score", ylab="Base density", ylim=c(0,1))
-  
-  for (i in seq(2, length(readsetfiles))) {
-    qvcounts <- get_qv_counts(readsetfiles[i])
-    qvcounts <- qvcounts[order(qvcounts$TotalObsQV), ]
-    points(qvcounts$TotalObsQV, qvcounts$TotalBases/sum(qvcounts$TotalBases), type="l", lty=1, col=readplatformcolors[i])
-  }
-  legend("topleft", platformlabels, lty=1, col=readplatformcolors)
-
-}
-
-pdf("Figure4Output/SPRQVegaWith30hrQVAccuracy.pdf", width=11, height=11)
+#pdf("Figure4Output/SPRQVegaWith30hrQVAccuracy.pdf", width=11, height=11)
 read_qv_plot(readsetnames, platformlabels)
-dev.off()
-
+#dev.off()
 
 # Plot mononucleotide accuracy
 
@@ -270,73 +189,20 @@ read_mononuccoverage_plot <- function(mnstatsfiles, platformlabels, maxlength=40
 
 
 #pdf("Figure4Output/SPRQVegaWith30hrReadMononucAccuracy.pdf", width=11, height=11)
-png("Figure4Output/SPRQVegaWith30hrReadMononucAccuracy.png")
+#png("Figure4Output/SPRQVegaWith30hrReadMononucAccuracy.png")
 read_mononucacc_plot(readsetnames, platformlabels)
-dev.off()
+#dev.off()
 
-pdf("Figure4Output/SPRQVegaWith30hrReadMononucErrorRate.pdf")  
+#pdf("Figure4Output/SPRQVegaWith30hrReadMononucErrorRate.pdf")  
 read_mononucerror_plot(readsetnames, platformlabels)
-dev.off()
+#dev.off()
 
-pdf("Figure4Output/SPRQVegaReadMononucQVScores.pdf")  
+#pdf("Figure4Output/SPRQVegaReadMononucQVScores.pdf")  
 read_mononucqvscore_plot(readsetnames, platformlabels)
-dev.off()
-# Plot substitution rate-by-type histogram
+#dev.off()
 
-typeorder <- c("A_C", "A_G", "A_T", "T_C", "T_G", "T_A", "G_A", "G_T", "G_C", "C_A", "C_T", "C_G")
-titv <- c("tv", "ti", "tv", "ti", "tv", "tv", "ti", "tv", "tv", "tv", "ti", "tv" )
-
-read_substitutions_plot <- function(readsetnames, platformlabels, platformcolors=readplatformcolors, outputdir, xlabval="Read platform", ylabval="Substitutions per mb", titleval="Read substitution error rates", titlecex=1.0, ymax=NA, legend=TRUE, legendposx=NA, legendposy=NA, legendcex=1) {
-  subsfilenames <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".singlenucerrorstats.txt"), sep="", collapse="")})
-  
-  firsthist <- read.table(subsfilenames[1], sep="\t")
-  names(firsthist) <- c("errortype", "errorcount", "errorspermbaligned")
-  typeorderindex <- sapply(firsthist$errortype, function(x) {which(typeorder==x)})
-  firsttis <- sum(firsthist[titv[typeorderindex]=="ti", "errorspermbaligned"])
-  firsttvs <- sum(firsthist[titv[typeorderindex]=="tv", "errorspermbaligned"])
-  tivals <- c(firsttis)
-  tvvals <- c(firsttvs)
-  platformlabelswithtitv <- sapply(platformlabels, function(x) {label = paste(c(x, "\nTi/Tv"), sep="", collapse=""); return(label)})
-  
-  for (i in seq(2, length(subsfilenames))) {
-    subshist <- read.table(subsfilenames[i], sep="\t")
-    names(subshist) <- c("errortype", "errorcount", "errorspermbaligned")
-    typeorderindex <- sapply(subshist$errortype, function(x) {which(typeorder==x)})
-    
-    platformtis <- sum(subshist[titv[typeorderindex]=="ti", "errorspermbaligned"])
-    platformtvs <- sum(subshist[titv[typeorderindex]=="tv", "errorspermbaligned"])
-    
-    tivals <- append(tivals, platformtis)
-    tvvals <- append(tvvals, platformtvs)
-  }
-  
-  barcolors <- sapply(platformcolors, function(x) {c(darken(x), lighten(x, 0.3))})
-  
-  if (is.na(ymax)) {
-    out <- barplot(rbind(tivals, tvvals), names.arg=platformlabelswithtitv, beside=TRUE, col=barcolors, main=titleval, cex.main=titlecex, xlab=xlabval, ylab=ylabval)
-  }
-  else {
-    out <- barplot(rbind(tivals, tvvals), names.arg=platformlabelswithtitv, beside=TRUE, col=barcolors, main=titleval, cex.main=titlecex, xlab=xlabval, ylab=ylabval, ylim=c(0,ymax))
-  }
-  if (is.na(legendposx)) {
-    legendposx <- out[2*length(tivals)-4]
-  }
-  if (is.na(legendposy)) {
-    legendposy <- max(rbind(tivals, tvvals))-200
-  }
-  if (legend) {
-    legend(legendposx, legendposy, platformlabels, col=platformcolors, pch=15, cex=legendcex)
-  }
-  formattedrates <- as.integer((rbind(tivals, tvvals)+0.5)*10)/10
-  formattedrates <- ifelse(formattedrates>10, as.integer(formattedrates), formattedrates)
-  text(out, rbind(tivals, tvvals), formattedrates, pos=3, xpd=NA, cex=0.85)
-  
-}
-
-#pdf("Figure4Output/SPRQVegaWith30hrReadSubstitutionRates.pdf", width=15, height=11)
-#png("Figure4Output/SPRQVegaWith30hrReadSubstitutionRates.png")
-jpeg("Figure4Output/SPRQVegaWith30hrReadSubstitutionRates.jpeg")
-read_substitutions_plot(readsetnames, platformlabels, outputdir="Figure4Output", legend=TRUE, legendposx=14, legendposy=80)
+pdf("Figure4Output/SPRQVegaWith30hrReadSubstitutionRates.pdf", width=15, height=11)
+read_substitutions_plot(readsetnames, platformlabels, outputdir="Figure4Output", legend=TRUE, legendposx=10, legendposy=85)
 dev.off()
 
 ### Indel error plot ###
@@ -388,7 +254,6 @@ read_indels_plot(readsetnames, platformlabels, legend=TRUE, legendposx=14, legen
 #dev.off()
 
 ### Plot the full figure together:
-#pdf("Figure4Multiplot.pdf", width=11, height=11)
 pdf("PacBioHiFiComparisonMultiplot.pdf", width=13, height=11)
 par(mfrow=c(2,2))
 read_qv_plot(readsetnames, platformlabels)
