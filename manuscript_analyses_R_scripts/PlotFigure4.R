@@ -18,7 +18,7 @@ source("/Users/nhansen/OneDrive/HG002_diploid_benchmark/all_Rscripts/manuscript_
 outdir <- "Figure4Output"
 
 # currently plotted read sets (alternatives below)
-readsetnames <- c("ont_epi2me_q28", "hifi_revio_pbmay24", "element_ultraq_jun2024", "illumina_googlepcrfree_ds0.1")
+readsetnames <- c("ont_epi2me_q28", "hifi_revio_pbmay24", "element_ultraq_jun2024", "illumina_googlepcrfree")
 platformlabels <- c("ONT Q28", "HiFi Revio", "Element", "Illumina")
 
 #readsetnames <- c("ont_epi2me_q28", "lc24_apk", "hifi_revio_pbmay24", "NIST_onso_2024Q1", "element_ultraq_jun2024", "illumina_2x250")
@@ -55,7 +55,7 @@ dev.off()
 
 # Plot substitution rate-by-type histogram
 
-pdf("Figure4Output/ReadSubstitutionRates.pdf")
+pdf("Figure4Output/ReadSubstitutionRates.pdf", width=11, height=6)
 read_substitutions_plot(readsetnames, platformlabels, outputdir="Figure4Output", legend=TRUE)
 dev.off()
 
@@ -66,10 +66,12 @@ read_indels_plot(readsetnames, platformlabels)
 dev.off()
 
 ### Plot the full figure together:
-pdf("Figure4Multiplot.pdf", width=11, height=11)
-par(mfrow=c(2,2))
+pdf("Figure4Output/Figure4Multiplot.pdf", width=13, height=8)
+par(mfrow=c(2,3))
+read_mononucqvscore_plot(readsetnames, platformlabels, strtype='mononuc')
+read_mononucqvscore_plot(readsetnames, platformlabels, strtype='dinuc', minlength=25, plottitle='Accuracy of dinucleotide runs')
+read_mononucqvscore_plot(readsetnames, platformlabels, strtype='trinuc', minlength=25, plottitle='Accuracy trinucleotide runs')
 read_qv_plot(readsetnames, platformlabels)
-read_mononucqvscore_plot(readsetnames, platformlabels, errorbars=TRUE)
 read_substitutions_plot(readsetnames, platformlabels, outputdir="Figure4Output")
 read_indels_plot(readsetnames, platformlabels)
 dev.off()

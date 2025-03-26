@@ -113,7 +113,7 @@ read_substitutions_plot <- function(readsetnames, platformlabels, platformcolors
   firsttvs <- sum(firsthist[titv[typeorderindex]=="tv", "errorspermbaligned"])
   tivals <- c(firsttis)
   tvvals <- c(firsttvs)
-  platformlabelswithtitv <- sapply(platformlabels, function(x) {label = paste(c("Transitions       Transversions\n", x), sep="", collapse=""); return(label)})
+  platformlabelswithtitv <- sapply(platformlabels, function(x) {label = paste(c("Ti    Tv\n", x), sep="", collapse=""); return(label)})
   
   for (i in seq(2, length(subsfilenames))) {
     subshist <- read.table(subsfilenames[i], sep="\t")
@@ -189,7 +189,7 @@ read_indels_plot <- function(indelreadsetnames, platformlabels, platformcolors=r
   totalinsertionrates <- sapply(indellengthfiles, totalinsertionrate)
   totaldeletionrates <- sapply(indellengthfiles, totaldeletionrate)
   
-  platformlabelswithinsdel <- sapply(platformlabels, function(x) {label = paste(c("Insertions       Deletions\n", x), sep="", collapse=""); return(label)})
+  platformlabelswithinsdel <- sapply(platformlabels, function(x) {label = paste(c("Ins   Del\n", x), sep="", collapse=""); return(label)})
   
   barcolors <- sapply(platformcolors, function(x) {c(darken(x), lighten(x, 0.3))})
   out <- barplot(rbind(totalinsertionrates, totaldeletionrates), beside=TRUE, names.arg=platformlabelswithinsdel, col=barcolors, main=titleval, cex.main=titlecex, xlab=xlabval, ylab=ylabval)
@@ -324,11 +324,11 @@ read_mononucacc_plot <- function(readsetnames, platformlabels, maxlength=40, pla
   legend("bottomleft", platformlabels, col=platformcolors, pch=platformpchvals)
 }
 
-read_mononucerror_plot <- function(readsetnames, platformlabels, maxlength=40, platformcolors=readplatformcolors) {
-  mnstatsfiles <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".strlengthaccuracy.mononuc.txt"), sep="", collapse="")})
+read_mononucerror_plot <- function(readsetnames, platformlabels, minlength=10, maxlength=40, strtype='mononuc', platformcolors=readplatformcolors) {
+  mnstatsfiles <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".strlengthaccuracy.", strtype, ".txt"), sep="", collapse="")})
   
   if (length(mnstatsfiles)>0) {
-    plotmononucerrors(mnstatsfiles[1], minlength=10, maxlength=maxlength, pchval=platformpchvals[1], color=platformcolors[1])
+    plotmononucerrors(mnstatsfiles[1], minlength=minlength, maxlength=maxlength, pchval=platformpchvals[1], color=platformcolors[1])
   }
   if (length(mnstatsfiles)>1) {
     for (i in seq(2, length(mnstatsfiles))) {
@@ -338,8 +338,8 @@ read_mononucerror_plot <- function(readsetnames, platformlabels, maxlength=40, p
   legend(30, 0.4, platformlabels, col=platformcolors, pch=platformpchvals)
 }
 
-read_mononucqvscore_plot <- function(readsetnames, platformlabels, maxlength=40, ymax=45, platformcolors=readplatformcolors, errorbars=FALSE, plottitle=NA, titlecex=1.0, legendcex=1.0) {
-  mnstatsfiles <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".strlengthaccuracy.mononuc.txt"), sep="", collapse="")})
+read_mononucqvscore_plot <- function(readsetnames, platformlabels, minlength=NA, maxlength=40, ymax=45, strtype='mononuc', platformcolors=readplatformcolors, errorbars=FALSE, plottitle=NA, titlecex=1.0, legendcex=1.0) {
+  mnstatsfiles <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".strlengthaccuracy.", strtype, ".txt"), sep="", collapse="")})
   
   if (length(mnstatsfiles)>0) {
     plotmononucqvscores(mnstatsfiles[1], minlength=10, maxlength=maxlength, pchval=platformpchvals[1], color=platformcolors[1], ymax=ymax, errorbars=errorbars, plottitle=plottitle, titlecex=titlecex)
