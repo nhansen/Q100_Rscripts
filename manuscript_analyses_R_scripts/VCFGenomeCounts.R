@@ -14,10 +14,13 @@ errorstats$totalqv <- -10.0*log10(errorstats$totalerrors/errorstats$covered)
 errorstats$snpqv <- -10.0*log10(errorstats$snperrors/errorstats$covered)
 errorstats$indelqv <- -10.0*log10(errorstats$indelerrors/errorstats$covered)
 
+grch38errorstats <- errorstats[errorstats$ref=="GRCh38",]
+chm13errorstats <- errorstats[errorstats$ref=="CHM13",]
+
 qualcolors <- c("#44AA99", "#332288", "#882255", "#888888")
 barcolors <- sapply(qualcolors, function(x) {c(x, x)})
 
-barplot(ploterrorcountsbyqual(wholegenometotalerrors), main="Errors in VCF-constructed genomes", names.arg=c("CHM13", "GRCh38"), beside=TRUE, col=t(barcolors))
+barplot(c(grch38errorstats$percentcovered, chm13errorstats$percentcovered), main="Percent of benchmark covered by VCF-constructed genomes", names.arg=c("GRCh38", "CHM13"), beside=TRUE, col=t(barcolors))
 barplot(ploterrorcountsbyqual(nocensattotalerrors), names.arg=c("CHM13", "GRCh38"), beside=TRUE, col=t(barcolors), main="Total errors outside censat regions for Revio calls")
 legend("topright", c("10", "20", "30", "40"), col=qualcolors, pch=15, title="Min GQ", cex=1.4)
 
