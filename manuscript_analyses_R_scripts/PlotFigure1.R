@@ -126,7 +126,7 @@ matlongaligndf <- longall_align_df[str_detect(longall_align_df$chrom1, '^.*MATER
 patlongaligndf <- longall_align_df[str_detect(longall_align_df$chrom1, '^.*PATERNAL.*$' ), ]
 
 # plot all chromosome pairs, with options:
-plot_all_chrom_pairs <- function(genome=benchgenome, linkpanel1=1, linkpanel2=2, aligndf=matlongaligndf, plotchroms=NA, track1=giabnc, wiggleideogram=FALSE, ideotrack=censats, centerlow=0.2, centerhigh=0.4, ideoheight=200, data1height=2000, data2height=2000, matloqual=matexcluded, patloqual=patexcluded, loquallow=0.1, loqualhigh=0.4, invert=FALSE, labelsat=NA, labelwidths=NA, chromlabels=NA, plottitle="hg002v1.1") {
+plot_all_chrom_pairs <- function(genome=benchgenome, linkpanel1=1, linkpanel2=2, aligndf=matlongaligndf, plotchroms=NA, track1=giabnc, wiggleideogram=FALSE, wiggleideogramtopline=FALSE, wiggleideogramcolor="black", ideotrack=censats, centerlow=0.2, centerhigh=0.4, ideoheight=200, data1height=2000, data2height=2000, matloqual=matexcluded, patloqual=patexcluded, loquallow=0.1, loqualhigh=0.4, invert=FALSE, labelsat=NA, labelwidths=NA, chromlabels=NA, plottitle="hg002v1.1") {
 
   # list of chroms in genome without chrM, reversed so sex chroms are at top (right)  
   if (is.na(plotchroms)) {
@@ -159,8 +159,12 @@ plot_all_chrom_pairs <- function(genome=benchgenome, linkpanel1=1, linkpanel2=2,
   #Plot the elements that are specified on "ideotrack" using their rgbcolor value (for a heatmap) or (if wiggleideogram is true) using their score value:
   if (wiggleideogram) {
     kpDataBackground(kp, data.panel = "ideogram", col="white")
-    kpBars(kp, data=matideotrack, y0=1-matideotrack$score, y1=1, col="black", border=NA, data.panel="ideogram")
-    kpBars(kp, data=patideotrack, y0=0, y1=patideotrack$score, col="black", border=NA, data.panel="ideogram")
+    kpBars(kp, data=matideotrack, y0=1-matideotrack$score, y1=1, col=wiggleideogramcolor, border=NA, data.panel="ideogram")
+    kpBars(kp, data=patideotrack, y0=0, y1=patideotrack$score, col=wiggleideogramcolor, border=NA, data.panel="ideogram")
+    if (wiggleideogramtopline) {
+      kpLines(kp, data=matideotrack, data.panel="ideogram", y=0, lwd=0.1, col="black")
+      kpLines(kp, data=patideotrack, data.panel="ideogram", y=1, lwd=0.1, col="black")
+    }
   }
   else {
     kpRect(kp, data=matideotrack, col=matideotrack$rgbcolor, border=NA, data.panel="ideogram", y0=rep(0, length(matideotrack)), y1=rep(1, length(matideotrack)))
@@ -221,6 +225,9 @@ pdf('Karyoplot_giab.w50000.wiggleblackbar.pdf')
 plot_all_chrom_pairs(benchgenome, ideotrack=giab421_w50000_grey, wiggleideogram=TRUE, track1=filteredcensats, centerlow=0.1, centerhigh=0.5, linkpanel1=1, linkpanel2=2, ideoheight=800, chromlabels=autosomes, labelsat=-0.175, labelwidth=0.058)
 dev.off()
 
+pdf('Karyoplot_giab.w50000.wiggleblackbarwithtopline.pdf')
+plot_all_chrom_pairs(benchgenome, ideotrack=giab421_w50000_grey, wiggleideogram=TRUE, wiggleideogramtopline=TRUE, track1=filteredcensats, centerlow=0.1, centerhigh=0.5, linkpanel1=1, linkpanel2=2, ideoheight=800, chromlabels=autosomes, labelsat=-0.175, labelwidth=0.058)
+dev.off()
 
 plot_karyoplot_legends <- function(colorscheme) {
   uniquelabels <- unique(colorscheme$label)
