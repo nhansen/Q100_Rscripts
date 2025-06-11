@@ -1,7 +1,10 @@
-setwd("/Users/nhansen/HG002_diploid_benchmark/PaperFigures")
+setwd("/Users/nhansen/OneDrive/HG002_diploid_benchmark/PaperFigures/Figures")
 
 library(colorspace)
 library(Hmisc)
+library(plotrix)
+
+source("/Users/nhansen/OneDrive/HG002_diploid_benchmark/Q100_Rscripts/manuscript_analyses_R_scripts/AssemblyBenchComparisonPlotFunctions.R")
 
 ################
 ### FIGURE 3 ###
@@ -15,200 +18,62 @@ library(Hmisc)
 
 safe_colorblind_palette <- c("#88CCEE", "#CC6677", "#DDCC77", "#117733", "#332288", "#AA4499", 
                              "#44AA99", "#999933", "#882255", "#661100", "#6699CC", "#888888")
-assemblycolors <- c("#44AA99", "#332288", "#882255", "#888888")
-methodcolors <- c("#DDCC77", "#661100", "#6699CC")
+assemblycolors <- c("#44AA99", "#332288", "#882255", "#888888", "#661100","#999933","#88CCEE", "#CC6677", "#DDCC77")
+qvmethodcolors <- c("#DDCC77", "#661100", "#6699CC")
+#qvmethodcolors <- c("#661100", "#6699CC")
 #assemblynames <- c("ash1v2", "HPRC_year1_mat", "hg002_curated_mat", "hg002_lc24medaka_hap1")
 #assemblylabels <- c("Ash1v2.0", "Year 1 HPRC", "HPRC Curated", "LC24 Medaka")
 #assemblynames <- c("ash1v2", "HPRC_year1_mat", "hg002_lc24medaka_hap1", "hifi_q28_trio_hic_hap1")
-assemblynames <- c("ash1v2.mm2def", "hprc_year1_mat.mm2def", "hprc_year2_hap2.mm2def", "hifi_q28_trio_hic_hap1.mm2def")
-assemblylabels <- c("Ash1v2 2020", "Yr1 HPRC 2023", "Yr2 HPRC 2024", "Revio/Q28 2024")
-#assemblylabels <- c("Shumate et al, 2020", "hifiasm, HPRC 2021", "verkko2.2, 80x Q28 ONT 2024", "verkko2.2, 60x Revio 2024")
-# NGA plot
+assemblynames <- c("ash1v2", "hprc_year1", "hprc_year2_polished", "hifi_q28_trio_hic")
+assemblylabels <- c("Ash1v2 2020", "Yr1 HPRC 2023", "Yr2_polished HPRC 2024", "Revio/Q28 2024")
+fiveassemblynames <- c("ash1v2", "hifiasm_2021", "hprc_year1", "hprc_year2_polished", "hifi_q28_trio_hic")
+fiveassemblylabels <- c("Ash1v2 2020", "Hifiasm 2021", "Yr1 HPRC 2023", "Yr2 HPRC 2024", "Revio/Q28 2024")
+fivewithv2trionames <- c("ash1v2", "hifiasm_2021", "hprc_year1", "hprc_year2_polished", "v2_trio")
+fivewithv2triolabels <- c("Ash1v2 2020", "Hifiasm 2021", "Yr1 HPRC 2023", "Yr2 HPRC 2024", "Verkko2 Trio 2025")
+ksassemblynames <- c("ash1v2", "hg002v0.1", "hifiasm_2021", "hprc_year1", "hprc_curated", "hprc_year2_polished", "lc24_medaka_6b4_test", "v2_trio", "hprc_year2_v2_thic")
+ksassemblylabels <- c("Ash1v2 2020", "HG002v0.1", "Hifiasm 2021", "Yr1 HPRC 2023", "Jarvis HPRC Curated", "HPRC Release2 HiFiasm", "LC24 ONT Medaka", "Verkko2 Trio 2025", "HPRC Release2 Verkko")
+adamsassemblynames <- c("ash1v2", "hifiasm_2021", "hprc_year1", "verkko_2023", "lc24_medaka_6b4_test")
+adamsassemblylabels <- c("Ash1 2020", "Hifiasm 2021", "HPRCv1 2022", "Verkko 2023", "ONT LC24 2024")
+skassemblynames <- c("ash1v2", "verkko_2023", "hifiasm_2021", "hprc_year1", "hprc_year2_polished", "lc24_nopolish", "lc24_medaka_6b4_test", "v2_trio", "hifiasm_ontonly_2025")
+skassemblylabels <- c("Ash1v2 2020", "Verkko 2023", "Hifiasm 2021", "Yr1 HPRC 2023", "HPRC Release2 HiFiasm", "LC24 Unpolished", "LC24 ONT Medaka", "Verkko2 Trio 2025", "Hifiasm ONTonly 2025")
+test1assemblynames <- c("lc24_nopolish")
+test1assemblylabels <- c("LC24 Unpolished")
+
+# NGA plots
 assemblysizefiles <- sapply(assemblynames, function(x) {file=paste(c("Figure3Output/", x, ".alignclusterlengths.txt"), sep="", collapse=""); return(file)})
+fiveassemblysizefiles <- sapply(fiveassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".alignclusterlengths.txt"), sep="", collapse=""); return(file)})
+fivewithv2triosizefiles <- sapply(fivewithv2trionames, function(x) {file=paste(c("Figure3Output/", x, ".alignclusterlengths.txt"), sep="", collapse=""); return(file)})
+ksassemblysizefiles <- sapply(ksassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".alignclusterlengths.txt"), sep="", collapse=""); return(file)})
+adamsassemblysizefiles <- sapply(adamsassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".alignclusterlengths.txt"), sep="", collapse=""); return(file)})
+skassemblysizefiles <- sapply(skassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".alignclusterlengths.txt"), sep="", collapse=""); return(file)})
 
-readlengths <- function(sizefile) {
-  clusterlengths <- read.table(sizefile, sep="\t", header=FALSE)
-  names(clusterlengths) <- c("perc", "clusterlength", "totallength", "chromosome")
-  clusterlengths$clusterlength <- clusterlengths$clusterlength/1000000
-  
-  return(clusterlengths)
-}
+# Make NGAx plots:
 
-plotclusterlengths <- function(clusterlengths, color="red", title="NGAx", dashed=FALSE, ltyval=NA, cexval=1.0) {
-  xcoords <- append(0, clusterlengths$perc)
-  ycoords <- c(clusterlengths$clusterlength, 0)
-  if (is.na(ltyval)) {
-    ltyval <- ifelse(dashed, 2, 1)
-  }
-  plot(xcoords, ycoords, type="s", col=color, lty=ltyval, xlim=c(0,100), ylim=c(0,250), xlab="Percent of Haploid Genome", ylab="Aligned length", main=title, cex=cexval)
-}
-
-addclusterlengths <- function(clusterlengths, color="blue", dashed=FALSE, ltyval=NA) {
-  xcoords <- append(0, clusterlengths$perc)
-  ycoords <- c(clusterlengths$clusterlength, 0)
-  if (is.na(ltyval)) {
-    ltyval <- ifelse(dashed, 2, 1)
-  }
-  lines(xcoords, ycoords, type="s", col=color, lty=ltyval, xlim=c(0,100))
-}
-
-plotsingleassemblyresults <- function(clusterfile, contigfile, scaffoldfile, ideal=TRUE, haplotype="MAT", plottitle="") {
-  cluster_lengths <- readlengths(clusterfile)
-  contig_lengths <- readlengths(contigfile)
-  scaffold_lengths <- readlengths(scaffoldfile)
-  
-  plotclusterlengths(cluster_lengths, col="red", title=plottitle)
-  addclusterlengths(contig_lengths, col="blue")
-  addclusterlengths(scaffold_lengths, col="darkgreen")
-  if (ideal) {
-    addclusterlengths(ideallengths, col="black")
-  }
-  
-  if (ideal) {
-    legend("topright", c("ideal", "NGx (scaffolds)", "NGx (contigs)", "NGAx"), col=c("black", "darkgreen", "blue", "red"), pch=15)
-  }
-  else {
-    legend("topright", c("NGx (scaffolds)", "NGx (contigs)", "NGAx"), col=c("darkgreen", "blue", "red"), pch=15)
-  }
-}
-
-assembly_ngax_plot <- function(clusterfiles, contigfiles=c(), scaffoldfiles=c(), assemblylabels=c(), ideal=FALSE, haplotype="MAT", plottitle="", cexval=1.0) {
-
-  firstclusters <- readlengths(clusterfiles[1]) 
-  plotclusterlengths(firstclusters, col=assemblycolors[1], title=plottitle, lty=1, cexval=cexval)
-  if (length(contigfiles) > 1) {
-    firstcontigs <- readlengths(contigfiles[1]) 
-    addclusterlengths(firstcontigs, col=assemblycolors[1])    
-  }
-  if (length(scaffoldfiles) > 1) {
-    firstscaffolds <- readlengths(scaffoldfiles[1]) 
-    addclusterlengths(firstscaffolds, col=assemblycolors[1])    
-  }
-
-  if (length(clusterfiles) > 1) {
-    for (i in seq(2, length(clusterfiles))) {
-      #addclusterlengths(readlengths(clusterfiles[i]), col=assemblycolors[i], lty=i)
-      addclusterlengths(readlengths(clusterfiles[i]), col=assemblycolors[i], lty=1)
-    }
-  }
-  if (ideal) {
-    ideallengths <- readlengths("Figure3Output/v1.1.mat.alignclusterlengths.txt")
-    addclusterlengths(ideallengths, col="black")
-  }
-  #legend("topright", assemblylabels, col=assemblycolors, lty=seq(1, length(clusterfiles)))
-  legend("topright", assemblylabels, col=assemblycolors, lty=rep(1, length(clusterfiles)))
-  
-}
-
-# Make NGAx plot:
-
-pdf("Figure3Output/NGAxPlot.pdf")
+pdf("Figure3Output/OriginalFourNGAxPlot.pdf")
 assembly_ngax_plot(assemblysizefiles, assemblylabels=assemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+dev.off()
+
+pdf("Figure3Output/FiveAssemblyNGAxPlot.pdf")
+assembly_ngax_plot(fiveassemblysizefiles, assemblylabels=fiveassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+dev.off()
+
+pdf("Figure3Output/FiveWithVerkko2TrioNGAxPlot.pdf")
+assembly_ngax_plot(fivewithv2triosizefiles, assemblylabels=fiveassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+dev.off()
+
+pdf("Figure3Output/KitchenSinkNGAxPlot.pdf")
+assembly_ngax_plot(ksassemblysizefiles, assemblylabels=ksassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+dev.off()
+
+pdf("Figure3Output/AdamsNGAxPlot.pdf")
+assembly_ngax_plot(adamsassemblysizefiles, assemblylabels=adamsassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
 dev.off()
 
 # Mononucleotide accuracy:
 mnstatsfiles <- sapply(assemblynames, function(x) {file=paste(c("Figure3Output/", x, ".mononucstats.txt"), sep="", collapse=""); return(file)})
-
-readmnstatsfile <- function(filename) {
-  mnstats <- read.table(filename, header=FALSE, sep="\t")
-  names(mnstats) <- c("name", "base", "reflength", "assemblylength", "type")
- 
-  return(mnstats) 
-}
-
-mononucaccuracystats <- function(mnstats) {
-  consensuserrors <- mnstats[(mnstats$assemblylength != -1) & (mnstats$type == "CONSENSUS"), ]
-  noncomplexcovered <- mnstats[mnstats$assemblylength != -1, ]
-  consensuserrorcounts <- hist(consensuserrors$reflength, plot=FALSE, breaks=seq(10, 100, 1))
-  noncomplexcovcounts <- hist(noncomplexcovered$reflength, plot=FALSE, breaks=seq(10, 100, 1))
-  accrate <- 1.0 - consensuserrorcounts$counts/noncomplexcovcounts$counts
-  correctcalls <- noncomplexcovcounts$counts - consensuserrorcounts$counts
-
-  return(data.frame(lengths=consensuserrorcounts$mids, errors=consensuserrorcounts$counts, correctcalls=correctcalls, totals=noncomplexcovcounts$counts, accuracy=accrate) ) 
-}
-
-assembly_mononucacc_plot <- function(mnstatsfiles=c(), assemblylabels=c(), plottitle="", pointcex=1.0, errorbars=FALSE) {
-  pchvalues <- c(15, 16, 17, 18)
-  multiplevector <- c(1.4, 1.4, 1.4, 1.9)
-  ptexp <- pointcex*multiplevector
-
-  if (length(mnstatsfiles) > 0) {
-    firststats <- readmnstatsfile(mnstatsfiles[1])
-    genomename <- assemblylabels[1]
-
-    plotdata <- mononucaccuracystats(firststats)    
-    mnlengths <- plotdata[seq(1,30), "lengths"]
-    accuracies <- plotdata[seq(1,30), "accuracy"]
-    accconfints <- binconf(plotdata[seq(1,30), "correctcalls"], plotdata[seq(1,30), "totals"], return.df=TRUE)
-    lowaccs <- accconfints$Lower
-    highaccs <- accconfints$Upper
-    plot(mnlengths, accuracies, xlim=c(10,40), ylim=c(0.0,1.0), pch=pchvalues[1], cex=ptexp[1], col=assemblycolors[1], xlab=c("Mononucleotide run length"), ylab=c("Accuracy"), main=c("Accuracy of mononucleotide runs"))
-    #text(20, 0.5, labels= paste(c("Overall error rate: ", mononucerrorperc, "%"), sep="", collapse=""))
-    if (errorbars) {
-      arrows(x0=mnlengths, y0=lowaccs, x1=mnlengths, y1=highaccs, code=3, angle=90, length=0.1, col=assemblycolors[1])
-    }
-  }
-  if (length(mnstatsfiles) > 1) {
-      for (i in seq(2, length(mnstatsfiles))) {
-        nextstats <- readmnstatsfile(mnstatsfiles[i])
-        plotdata <- mononucaccuracystats(nextstats)
-        mnlengths <- plotdata[seq(1,30), "lengths"]
-        accuracies <- plotdata[seq(1,30), "accuracy"]
-        accconfints <- binconf(plotdata[seq(1,30), "correctcalls"], plotdata[seq(1,30), "totals"], return.df=TRUE)
-        lowaccs <- accconfints$Lower
-        highaccs <- accconfints$Upper
-        points(mnlengths, accuracies, xlim=c(10,40), cex=ptexp[i], pch=pchvalues[i], col=assemblycolors[i])
-        if (errorbars) {
-          arrows(x0=mnlengths, y0=lowaccs, x1=mnlengths, y1=highaccs, code=3, angle=90, length=0.1, col=assemblycolors[i])
-        }
-      }    
-  }
-
-  legend(15, 0.6, assemblylabels, col=assemblycolors, pch=pchvalues, pt.cex=ptexp)
-}
-
-assembly_mononucqv_plot <- function(mnstatsfiles=c(), assemblylabels=c(), plottitle="", errorbars=FALSE, pointcex=1.0) {
-  pchvalues <- c(15, 16, 17, 18)
-  multiplevector <- c(1.4, 1.4, 1.4, 1.9)
-  ptexp <- pointcex*multiplevector
-  
-  if (length(mnstatsfiles) > 0) {
-    firststats <- readmnstatsfile(mnstatsfiles[1])
-    genomename <- assemblylabels[1]
-    plotdata <- mononucaccuracystats(firststats)    
-    mnlengths <- plotdata[seq(1,30), "lengths"]
-    errorrates <- plotdata[seq(1,30), "errors"]/plotdata[seq(1,30), "totals"]
-    errorconfints <- binconf(plotdata[seq(1,30), "errors"], plotdata[seq(1,30), "totals"], return.df=TRUE)
-    lowqvals <- -10.0*log10(errorconfints$Lower)
-    highqvals <- -10.0*log10(errorconfints$Upper)
-    
-    qvals <- sapply(errorrates, function(x) { qv=-10.0*log10(x); return(qv) })
-    plot(mnlengths, qvals, xlim=c(10,40), ylim=c(0, 35), pch=pchvalues[1], col=assemblycolors[1], xlab=c("Mononucleotide run length"), ylab=c("Phred QV Score"), main=c("Accuracy of mononucleotide runs"), cex=ptexp[1])
-    if (errorbars) {
-      arrows(x0=mnlengths, y0=lowqvals, x1=mnlengths, y1=highqvals, code=3, angle=90, length=0.1, col=assemblycolors[1])
-    }
-  }
-  if (length(mnstatsfiles) > 1) {
-    for (i in seq(2, length(mnstatsfiles))) {
-      nextstats <- readmnstatsfile(mnstatsfiles[i])
-      plotdata <- mononucaccuracystats(nextstats)
-      mnlengths <- plotdata[seq(1,30), "lengths"]
-      errorrates <- plotdata[seq(1,30), "errors"]/plotdata[seq(1,30), "totals"]
-      errorconfints <- binconf(plotdata[seq(1,30), "errors"], plotdata[seq(1,30), "totals"], return.df=TRUE)
-      lowqvals <- -10.0*log10(errorconfints$Lower)
-      highqvals <- -10.0*log10(errorconfints$Upper)
-      
-      qvals <- sapply(errorrates, function(x) { qv=-10.0*log10(x); return(qv) })
-      points(mnlengths, qvals, xlim=c(10,40), cex=ptexp[i], pch=pchvalues[i], col=assemblycolors[i])
-      if (errorbars) {
-        arrows(x0=mnlengths, y0=lowqvals, x1=mnlengths, y1=highqvals, code=3, angle=90, length=0.1, col=assemblycolors[i])
-      }
-    }    
-  }
-  
-  legend(25, 32, assemblylabels, col=assemblycolors, pch=pchvalues, pt.cex=pointcex*multiplevector)
-  #legend(30, 30, assemblylabels, col=assemblycolors, pch=pchvalues)
-}
+ksmnstatsfiles <- sapply(ksassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".mononucstats.txt"), sep="", collapse=""); return(file)})
+adamsmnstatsfiles <- sapply(adamsassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".mononucstats.txt"), sep="", collapse=""); return(file)})
+skmnstatsfiles <- sapply(skassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".mononucstats.txt"), sep="", collapse=""); return(file)})
 
 # Make mononucleotide accuracy/QV plots
 
@@ -216,129 +81,61 @@ pdf("Figure3Output/AssemblyMononucAccuracy.pdf")
 assembly_mononucacc_plot(mnstatsfiles, assemblylabels)
 dev.off()
 
-pdf("Figure3Output/AssemblyMononucErrorQVs.pdf")  
-assembly_mononucqv_plot(mnstatsfiles, assemblylabels)
+pdf("Figure3Output/KitchenSinkMononucAccuracy.pdf")  
+assembly_mononucacc_plot(ksmnstatsfiles, ksassemblylabels)
+dev.off()
+
+pdf("Figure3Output/KitchenSinkAssemblyMononucErrorQVs.pdf")  
+assembly_mononucqv_plot(ksmnstatsfiles, ksassemblylabels)
+dev.off()
+
+pdf("Figure3Output/AdamsMononucErrorQVs.pdf")  
+assembly_mononucqv_plot(adamsmnstatsfiles, adamsassemblylabels)
 dev.off()
 
 # Indel errors:
 indelstatsfiles <- sapply(assemblynames, function(x) {file=paste(c("Figure3Output/", x, ".indelerrorstats.txt"), sep="", collapse=""); return(file)})
+ksindelstatsfiles <- sapply(ksassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".indelerrorstats.txt"), sep="", collapse=""); return(file)})
+adamsindelstatsfiles <- sapply(adamsassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".indelerrorstats.txt"), sep="", collapse=""); return(file)})
+skindelstatsfiles <- sapply(skassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".indelerrorstats.txt"), sep="", collapse=""); return(file)})
 
-totalindelrate <- function(indellengthfile) {
-  indellengthhist <- read.table(indellengthfile, sep="\t")
-  names(indellengthhist) <- c("indellength", "indelcount", "indelspermbaligned")
-
-  return(sum(indellengthhist$indelspermbaligned, na.rm=TRUE))  
-}
-totalinsertionrate <- function(indellengthfile) {
-  indellengthhist <- read.table(indellengthfile, sep="\t")
-  names(indellengthhist) <- c("indellength", "indelcount", "indelspermbaligned")
-  
-  return(sum(indellengthhist[indellengthhist$indellength>0, "indelspermbaligned"], na.rm=TRUE))  
-}
-totaldeletionrate <- function(indellengthfile) {
-  indellengthhist <- read.table(indellengthfile, sep="\t")
-  names(indellengthhist) <- c("indellength", "indelcount", "indelspermbaligned")
-  
-  return(sum(indellengthhist[indellengthhist$indellength<0, "indelspermbaligned"], na.rm=TRUE))  
-}
-assembly_indels_plot <- function(indellengthfiles, assemblylabels, xlabval="Assembly", ylabval="Indel Errors per mb", titleval="", ymax=NA) {
-  totalinsertionrates <- sapply(indellengthfiles, totalinsertionrate)
-  totaldeletionrates <- sapply(indellengthfiles, totaldeletionrate)
-
-  assemblylabelswithinsdel <- sapply(assemblylabels, function(x) {label = paste(c("Ins     Del\n", x), sep="", collapse=""); return(label)})
-  
-  barcolors <- sapply(assemblycolors, function(x) {c(darken(x), lighten(x, 0.3))})
-  out <- barplot(rbind(totalinsertionrates, totaldeletionrates), beside=TRUE, names.arg=assemblylabelswithinsdel, col=barcolors, main=titleval, xlab=xlabval, ylab=ylabval)
-  legend(out[5], 25.0, assemblylabels, col=assemblycolors, pch=15)
-  formattedrates <- as.integer(rbind(totalinsertionrates, totaldeletionrates)*10)/10
-  text(out, rbind(totalinsertionrates, totaldeletionrates), formattedrates, pos=3, xpd=NA)
-  
-}
-
-# Make indels plot:
+# Make indels plots:
 
 pdf("Figure3Output/IndelRates.pdf", width=9, height=8)  
 assembly_indels_plot(indelstatsfiles, assemblylabels, titleval="Indel discrepancies in assemblies")
 dev.off()
 
+pdf("Figure3Output/KitchenSinkIndelRates.pdf", width=9, height=8)  
+assembly_indels_plot(ksindelstatsfiles, ksassemblylabels, titleval="Indel discrepancies in assemblies", legendypos=18.0)
+dev.off()
+
+pdf("Figure3Output/AdamsRates.pdf", width=9, height=8)  
+assembly_indels_plot(adamsindelstatsfiles, adamsassemblylabels, titleval="Indel discrepancies in assemblies", legendypos=18.0)
+dev.off()
+
+
 ### Phasing errors plot
 
-phaseswitchfile <- "Figure3Output/assembly_switch_rates.txt"
-
-assembly_switchrate_plot <- function(switchfile, plottitle="Phase switch errors per megabase") {
-  switchrates <- read.table(switchfile, sep="\t", header=FALSE)
-  names(switchrates) <- c("Assembly", "Hap", "SwitchRate")
-  #switchrates <- switchrates[switchrates$Assembly != "Ash1v2.0", ]
-  assemblylabelswithhap <- sapply(seq(1, length(switchrates$Assembly)), function(i) {label = paste(c(switchrates[i, "Assembly"], "\n(", switchrates[i, "Hap"], ")"), sep="", collapse=""); return(label)})
-  #assemblycolorswithdups <- assemblycolors[find(assemblynames==switchrates$Assembly)]
-  assemblycolorswithdups <- sapply(switchrates$Assembly, function(x) {assemblycolors[which(assemblylabels==x)]})
-  
-  # bottom, left, top, right  
-  defaultmargin <- c(5.1, 4.1, 4.1, 2.1)
-  par(mar = c(5.1, 7.1, 4.1, 4.1))
-  #par(mar = c(5.1, 10.1, 4.1, 4.1))
-  options(scipen=8)
-  
-  out <- barplot(log10(rev(switchrates$SwitchRate)), names.arg=rev(assemblylabelswithhap), las=1, horiz=TRUE, xaxt='n', col=rev(assemblycolorswithdups), xlab=c("Errors per megabase"), main=plottitle)
-  xval <- c(1, 10, 100, 1000)
-  xpos <- log10(xval)
-  axis(1, xpos, xval, las=1)
-  formattedrates <- as.integer(switchrates$SwitchRate*10)/10
-  text(log10(rev(switchrates$SwitchRate)), out, rev(formattedrates), pos=4, xpd=NA)
-  par(mar=defaultmargin)
-  
-}
+phaseswitchfile <- "Figure3Output/switchrates.txt"
 
 pdf("Figure3Output/PhaseSwitchRates.pdf")  
-assembly_switchrate_plot(phaseswitchfile)
+assembly_switchrate_plot(assemblynames, assemblylabels, phaseswitchfile)
+dev.off()
+
+pdf("Figure3Output/KitchenSinkPhaseSwitchRates.pdf")  
+assembly_switchrate_plot(ksassemblynames, ksassemblylabels, phaseswitchfile)
+dev.off()
+
+pdf("Figure3Output/AdamsPhaseSwitchRates.pdf")  
+assembly_switchrate_plot(adamsassemblynames, adamsassemblylabels, phaseswitchfile)
 dev.off()
 
 ### Substitution rates
 
 substitutionstatsfiles <- sapply(assemblynames, function(x) {file=paste(c("Figure3Output/", x, ".singlenucerrorstats.txt"), sep="", collapse=""); return(file)})
-
-# Plot substitution rate-by-type histogram
-
-typeorder <- c("A_C", "A_G", "A_T", "T_C", "T_G", "T_A", "G_A", "G_T", "G_C", "C_A", "C_T", "C_G")
-titv <- c("tv", "ti", "tv", "ti", "tv", "tv", "ti", "tv", "tv", "tv", "ti", "tv" )
-
-assembly_substitutions_plot <- function(assemblysubsfiles, assemblylabels, xlabval="Assembly", ylabval="Substitutions per mb", titleval="", ymax=NA, legend=TRUE) {
-
-  firsthist <- read.table(assemblysubsfiles[1], sep="\t")
-  names(firsthist) <- c("errortype", "errorcount", "errorspermbaligned")
-  typeorderindex <- sapply(firsthist$errortype, function(x) {which(typeorder==x)})
-  firsttis <- sum(firsthist[titv[typeorderindex]=="ti", "errorspermbaligned"])
-  firsttvs <- sum(firsthist[titv[typeorderindex]=="tv", "errorspermbaligned"])
-  tivals <- c(firsttis)
-  tvvals <- c(firsttvs)
-  assemblylabelswithtitv <- sapply(assemblylabels, function(x) {label = paste(c("Ti     Tv\n", x), sep="", collapse=""); return(label)})
-  
-  for (i in seq(2, length(assemblysubsfiles))) {
-    subshist <- read.table(assemblysubsfiles[i], sep="\t")
-    names(subshist) <- c("errortype", "errorcount", "errorspermbaligned")
-    typeorderindex <- sapply(subshist$errortype, function(x) {which(typeorder==x)})
-    
-    assemblytis <- sum(subshist[titv[typeorderindex]=="ti", "errorspermbaligned"])
-    assemblytvs <- sum(subshist[titv[typeorderindex]=="tv", "errorspermbaligned"])
-    
-    tivals <- append(tivals, assemblytis)
-    tvvals <- append(tvvals, assemblytvs)
-  }
-  
-  barcolors <- sapply(assemblycolors, function(x) {c(darken(x), lighten(x, 0.3))})
-  
-  if (is.na(ymax)) {
-    out <- barplot(rbind(tivals, tvvals), names.arg=assemblylabelswithtitv, beside=TRUE, col=barcolors, main=titleval, xlab=xlabval, ylab=ylabval)
-  }
-  else {
-    out <- barplot(rbind(tivals, tvvals), names.arg=assemblylabelswithtitv, beside=TRUE, col=typecolors, main=titleval, xlab=xlabval, ylab=ylabval, ylim=c(0,ymax))
-  }
-  if (legend) {
-    legend(out[5], 160, assemblylabels, col=assemblycolors, pch=15)
-  }
-  formattedrates <- as.integer(rbind(tivals, tvvals)*10)/10
-  text(out, rbind(tivals, tvvals), formattedrates, pos=3, xpd=NA)
-}
+kssubstitutionstatsfiles <- sapply(ksassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".singlenucerrorstats.txt"), sep="", collapse=""); return(file)})
+adamssubstitutionstatsfiles <- sapply(adamsassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".singlenucerrorstats.txt"), sep="", collapse=""); return(file)})
+sksubstitutionstatsfiles <- sapply(skassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".singlenucerrorstats.txt"), sep="", collapse=""); return(file)})
 
 # Make substitutions plot:
 
@@ -346,27 +143,30 @@ pdf("Figure3Output/SubstitutionRates.pdf", width=9, height=8)
 assembly_substitutions_plot(substitutionstatsfiles, assemblylabels, titleval="Substitution discrepancies in assemblies")
 dev.off()
 
+pdf("Figure3Output/KitchenSinkSubstitutionRates.pdf", width=9, height=8)  
+assembly_substitutions_plot(kssubstitutionstatsfiles, ksassemblylabels, legendypos=150, titleval="Substitution discrepancies in assemblies")
+dev.off()
+
+pdf("Figure3Output/AdamsSubstitutionRates.pdf", width=9, height=8)  
+assembly_substitutions_plot(adamssubstitutionstatsfiles, adamsassemblylabels, legendypos=150, titleval="Substitution discrepancies in assemblies")
+dev.off()
+
 ### Quality value (QV) scores for different assemblies by different methods
-qvfile <- "Figure3Output/AssemblyQVScores.txt"
-
-assembly_qv_plot <-function(assembly_stats_file, assemblylabels, titleval="Assembly QV by different methods") {
-
-  assembly_stats <- read.table(assembly_stats_file, sep="\t", header=TRUE)
-  names(assembly_stats) <- c("Assembly", "MerqQV", "YakQV", "BenchQV")
-  
-  minqv <- min(rbind(assembly_stats$MerqQV, assembly_stats$YakQV, assembly_stats$BenchQV), na.rm=TRUE)
-  maxqv <- max(rbind(assembly_stats$MerqQV, assembly_stats$YakQV, assembly_stats$BenchQV), na.rm=TRUE)
-  
-  if (length(assemblylabels)==0) {
-    assemblylabels=assembly_stats$Assembly
-  }
-  barplot(t(cbind(assembly_stats$MerqQV, assembly_stats$YakQV, assembly_stats$BenchQV)), beside=TRUE, names.arg=assembly_stats$Assembly, col=methodcolors, xlab="Assembly", ylim=c(0, maxqv+20), main=titleval)
-
-  legend("topright", c("Merqury", "Yak", "Q100 Benchmark"), col=methodcolors, pch=15)
-}
+#qvfile <- "Figure3Output/AssemblyQVScores.txt"
+yakqvfile <- "Figure3Output/yak_sprq_element_std_hybrid_qvs.txt"
+merqqvfile <- "Figure3Output/merqury_qvs.txt"
+assemblyqvfile <- "Figure3Output/gqc_assembly_qvs.txt"
 
 pdf("Figure3Output/QVMeasures.pdf", width=13, height=8.5)  
-assembly_qv_plot(qvfile, assemblylabels)
+assembly_qv_plot(assemblyqvfile, yakqvfile, merqqvfile, assemblynames, assemblylabels)
+dev.off()
+
+pdf("Figure3Output/KitchenSinkQVMeasures.pdf", width=13, height=8.5)  
+assembly_qv_plot(assemblyqvfile, yakqvfile, merqqvfile, ksassemblynames, ksassemblylabels)
+dev.off()
+
+pdf("Figure3Output/AdamsQVMeasures.pdf", width=13, height=8.5)  
+assembly_qv_plot(assemblyqvfile, yakqvfile, merqqvfile, adamsassemblynames, adamsassemblylabels)
 dev.off()
 
 ### Plot them all together:
@@ -378,6 +178,63 @@ assembly_mononucqv_plot(mnstatsfiles, assemblylabels, pointcex=1.5)
 assembly_substitutions_plot(substitutionstatsfiles, assemblylabels, titleval="Substitution discrepancies in assemblies")
 assembly_indels_plot(indelstatsfiles, assemblylabels, titleval="Indel discrepancies in assemblies")
 assembly_switchrate_plot(phaseswitchfile, plottitle="Phase switch errors per mb")
+dev.off()
+
+### Plot them all together:
+pdf("Figure3KitchenSinkMultiplot.pdf", width=13, height=9)
+par(mfrow=c(2,3))
+assembly_ngax_plot(ksassemblysizefiles, assemblylabels=ksassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+assembly_qv_plot(assemblyqvfile, yakqvfile, merqqvfile, ksassemblynames, ksassemblylabels)
+assembly_mononucqv_plot(ksmnstatsfiles, ksassemblylabels)
+assembly_substitutions_plot(kssubstitutionstatsfiles, ksassemblylabels, legendypos=150, titleval="Substitution discrepancies in assemblies")
+assembly_indels_plot(ksindelstatsfiles, ksassemblylabels, titleval="Indel discrepancies in assemblies", legendypos=18.0)
+assembly_switchrate_plot(ksassemblynames, ksassemblylabels, phaseswitchfile)
+dev.off()
+
+### Plot them all together:
+pdf("Figure3AdamsMultiplot.pdf", width=13, height=9)
+par(mfrow=c(2,3))
+assembly_ngax_plot(adamsassemblysizefiles, assemblylabels=adamsassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+assembly_qv_plot(assemblyqvfile, yakqvfile, merqqvfile, adamsassemblynames, adamsassemblylabels)
+assembly_mononucqv_plot(adamsmnstatsfiles, adamsassemblylabels, pointcex=1.0)
+assembly_substitutions_plot(adamssubstitutionstatsfiles, adamsassemblylabels, legendypos=150, titleval="Substitution discrepancies in assemblies")
+assembly_indels_plot(adamsindelstatsfiles, adamsassemblylabels, titleval="Indel discrepancies in assemblies", legendypos=20.0)
+assembly_switchrate_plot(adamsassemblynames, adamsassemblylabels, phaseswitchfile)
+dev.off()
+
+pdf("Figure3AdamsMultiplotLinesBars.pdf", width=13, height=9)
+par(mfrow=c(2,3))
+assembly_ngax_plot(adamsassemblysizefiles, assemblylabels=adamsassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+assembly_qv_plot(assemblyqvfile, yakqvfile, merqqvfile, adamsassemblynames, adamsassemblylabels)
+assembly_mononucqv_plot(adamsmnstatsfiles, adamsassemblylabels, errorbars=TRUE, pointcex=0, plotlines=TRUE, linetype=2)
+#assembly_substitutions_plot(adamssubstitutionstatsfiles, adamsassemblylabels, legendypos=10, titleval="Substitution discrepancies in assemblies", ybreak=c(40, 120), ymax=160, spanbreak=c(9,12))
+assembly_substitutions_plot(adamssubstitutionstatsfiles, adamsassemblylabels, legendypos=10, titleval="Substitution discrepancies in assemblies" )
+assembly_indels_plot(adamsindelstatsfiles, adamsassemblylabels, titleval="Indel discrepancies in assemblies", legendypos=20.0)
+assembly_switchrate_plot(adamsassemblynames, adamsassemblylabels, phaseswitchfile)
+dev.off()
+
+### Plot them all together:
+pdf("Figure3SergesKitchenSinkMultiplot.pdf", width=13, height=9)
+par(mfrow=c(2,3))
+assembly_ngax_plot(skassemblysizefiles, assemblylabels=skassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+assembly_qv_plot(assemblyqvfile, yakqvfile, merqqvfile, skassemblynames, skassemblylabels)
+assembly_mononucqv_plot(skmnstatsfiles, skassemblylabels, errorbars=TRUE, pointcex=0, plotlines=TRUE, linetype=2)
+assembly_substitutions_plot(sksubstitutionstatsfiles, skassemblylabels, legendypos=150, titleval="Substitution discrepancies in assemblies")
+assembly_indels_plot(skindelstatsfiles, skassemblylabels, titleval="Indel discrepancies in assemblies", legendypos=62.0)
+assembly_switchrate_plot(skassemblynames, skassemblylabels, phaseswitchfile)
+dev.off()
+
+# see how it looks to plot just one assembly's data:
+pdf("Test1AssemblyMultiplot.pdf", width=9, height=9)
+par(mfrow=c(2,2))
+test1assemblysizefiles <- sapply(test1assemblynames, function(x) {file=paste(c("Figure3Output/", x, ".alignclusterlengths.txt"), sep="", collapse=""); return(file)})
+test1substitutionstatsfiles <- sapply(test1assemblynames, function(x) {file=paste(c("Figure3Output/", x, ".singlenucerrorstats.txt"), sep="", collapse=""); return(file)})
+test1indelstatsfiles <- sapply(test1assemblynames, function(x) {file=paste(c("Figure3Output/", x, ".indelerrorstats.txt"), sep="", collapse=""); return(file)})
+test1mnstatsfiles <- sapply(test1assemblynames, function(x) {file=paste(c("Figure3Output/", x, ".mononucstats.txt"), sep="", collapse=""); return(file)})
+assembly_ngax_plot(test1assemblysizefiles, assemblylabels=test1assemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+assembly_mononucqv_plot(test1mnstatsfiles, test1assemblylabels, errorbars=TRUE, pointcex=0, plotlines=TRUE, linetype=2)
+assembly_substitutions_plot(test1substitutionstatsfiles, test1assemblylabels, legendypos=150, titleval="Substitution discrepancies in assemblies")
+assembly_indels_plot(test1indelstatsfiles, test1assemblylabels, titleval="Indel discrepancies in assemblies", legendypos=62.0)
 dev.off()
 
 
