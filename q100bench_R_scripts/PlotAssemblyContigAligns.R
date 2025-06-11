@@ -5,7 +5,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 pardefault <- par()
 
-chromfile <- ifelse(!( is.na(args[1])), args[1], "q2_to_r1.clustered_aligns.HG01346#1#CM086596.1.clusters.bed")
+chromname <- ifelse(!( is.na(args[1])), args[1], "HG01346#1#CM086596.1")
 genomename <- ifelse(!( is.na(args[2])), args[2], "HG01346_HPRC")
 benchname <- ifelse(!( is.na(args[3])), args[3], "HG01346_verkko_curated_y")
 outputdir <- ifelse(!( is.na(args[4])), args[4], ".")
@@ -76,7 +76,7 @@ orderedcontigs <- function(aligns) {
 }
 
 
-multiplotaligns <- function(aligns, chromlength=NA, chromplotfile=NA, minfrac=0.5, refgapfile=NA, querygapfile=NA, vertlinepos=NA, maxqueryentries=10, suppresstitle=FALSE) {
+multiplotaligns <- function(aligns, chromlength=NA, chromplotfile=NA, minfrac=0.5, refgapfile=NA, querygapfile=NA, vertlinepos=NA, maxqueryentries=10, suppresstitle=FALSE, chrommin=NA, chrommax=NA, querymin=NA, querymax=NA, unitbases=axisunitbases, querytickdistance=10) {
 
   chromname <- unique(aligns[1]["chrom"])  
   # largeclusterqueryaligninfo dataframe has only the contig names for contigs in the large clusters of alignments:
@@ -91,7 +91,7 @@ multiplotaligns <- function(aligns, chromlength=NA, chromplotfile=NA, minfrac=0.
 
   # don't bother to plot any alignments if total aligned query bases are less than minfrac (0.5) of the ref chrom length:
   coveredbases <- sum(largeclusterqueryaligninfo$querybasescovered)
-  halfchromlength <- 0.5*chromlength/axisunitbases
+  halfchromlength <- 0.5*chromlength/unitbases
   if (coveredbases < halfchromlength) {
     return(0)
   }
@@ -113,8 +113,7 @@ multiplotaligns <- function(aligns, chromlength=NA, chromplotfile=NA, minfrac=0.
   numsections <- min(length(largeclusterqueryaligninfo$query), maxqueryentries)
   positionorderedqueryinfo$pseudostart <- sapply(seq(1, length(positionorderedqueryinfo$query)), function(x) { if (x==1) {return(0)} else {return(sum(positionorderedqueryinfo[1:(x-1), "queryaxislength"]))} })
   positionorderedqueryinfo$pseudoend <- sapply(seq(1, length(positionorderedqueryinfo$query)), function(x) { return(sum(positionorderedqueryinfo[(1:x), "queryaxislength"])) })
-  clusterpalette <- safe_colorblind_palette[1:length(nonsmallcontigclusters)]
-  
+
   bigcontiglist <- unique(positionorderedqueryinfo[ , "query"])
   bigcontigaligns <- lapply(positionorderedqueryinfo$query, function(x) {return(aligns[aligns$query==x, ])})
 
@@ -124,18 +123,31 @@ multiplotaligns <- function(aligns, chromlength=NA, chromplotfile=NA, minfrac=0.
   
   clusterpalette <- safe_colorblind_palette[1:length(nonsmallcontigclusters)]
   bigclustercolors <- data.frame("clustername"=nonsmallcontigclusters, "clustercolor"=clusterpalette)
-  
-  orderedclusters <- contigclusters[order(contigclusters)]
+
+  # str_sort(cf, numeric = TRUE)  
+  #orderedclusters <- contigclusters[order(contigclusters)]
+  orderedclusters <- str_sort(contigclusters, numeric=TRUE)
   legendclustercolors <- sapply(orderedclusters, function(x) {
     ifelse(str_detect(x, "Small"), "black", clusterpalette[which(nonsmallcontigclusters==x, arr.ind=TRUE)] )
   })
   
   plottitle <- ifelse(suppresstitle, "", paste("Alignments of ", genomename, " to ", benchname))
   xlabval <- paste(c(chromname, " (Mb)"), sep="", collapse="" )
-  chrommin <- min(positionorderedqueryinfo$minrefpos)
-  chrommax <- chromlength/axisunitbases
+  if (is.na(chrommin)) {
+    chrommin <- min(positionorderedqueryinfo$minrefpos)
+  }
+  if (is.na(chrommax)) {
+    chrommax <- chromlength/unitbases
+  }
+  if (is.na(querymin)) {
+    querymin <- 0
+  }
+  if (is.na(querymax)) {
+    querymax <- max(positionorderedqueryinfo$pseudoend + 1)
+  }
+  
   plot(list(), list(), main=plottitle, xaxs='i', yaxt='n', xlab=xlabval, yaxs='i', ylab="", 
-       xlim=c(chrommin, chrommax), ylim=c(0, max(positionorderedqueryinfo$pseudoend + 1)))
+       xlim=c(chrommin, chrommax), ylim=c(querymin, querymax))
 
   contigdividelines <- positionorderedqueryinfo$pseudostart
   abline(h=contigdividelines[-1])
@@ -148,8 +160,8 @@ multiplotaligns <- function(aligns, chromlength=NA, chromplotfile=NA, minfrac=0.
     contigmax <- positionorderedqueryinfo[positionorderedqueryinfo$query==contigname, "maxquerypos"]
     contigpseudostart <- positionorderedqueryinfo[positionorderedqueryinfo$query==contigname, "pseudostart"]
     contigpseudoend <- positionorderedqueryinfo[positionorderedqueryinfo$query==contigname, "pseudoend"]
-    if ((ceiling(contigmin/10) < contigmax/10) && (floor(contigmax/10) > contigmin/10)) {
-      contigtickpositions <- 10*seq.int(ceiling(contigmin/10), floor(contigmax/10))
+    if ((ceiling(contigmin/querytickdistance) < contigmax/querytickdistance) && (floor(contigmax/querytickdistance) > contigmin/querytickdistance)) {
+      contigtickpositions <- querytickdistance*seq.int(ceiling(contigmin/querytickdistance), floor(contigmax/querytickdistance))
     }
     else {
       contigtickpositions <- c()
@@ -165,12 +177,23 @@ multiplotaligns <- function(aligns, chromlength=NA, chromplotfile=NA, minfrac=0.
     segmentcolors <- sapply(contigaligns$cluster, function(x) {
       ifelse(str_detect(x, "Small"), "black", bigclustercolors[which(bigclustercolors$clustername==x, arr.ind=TRUE), "clustercolor"] )
     })
+
     cexfactor <- 0.8 # will want to adjust this with the lengths of the contig names
-    mtext(contigname, side=2, line=2, at=as.integer((contigpseudostart + contigpseudoend)/2), cex=cexfactor)
+    contiglabelheight <- (contigpseudostart + contigpseudoend)/2.0
+    if ((querymin != 0) & ((contigpseudostart <= querymin) | (contigpseudoend >= querymax))) {
+      # adjust height of label
+      contiglabelheight <- ((querymin + querymax)/2.0)
+    }
+    #return(contiglabelheight)
+    if (contigpseudoend - contigpseudostart > 10) {
+      mtext(contigname, side=2, line=2, at=contiglabelheight, cex=cexfactor)
+    }
     
     segments(x0=segmentx0vals, y0=segmenty0vals, x1=segmentx1vals, y1=segmenty1vals, col=segmentcolors)
   }
   # ticks/labels:
+  
+  inboundarytickmarks <- which(alltickpseudopositions>querymin & alltickpseudopositions<querymax)
   axis(side=2, at=alltickpseudopositions, labels = allticklabels)
 
   if (!(is.na(vertlinepos))) {
@@ -180,15 +203,15 @@ multiplotaligns <- function(aligns, chromlength=NA, chromplotfile=NA, minfrac=0.
     }
   }
   if (length(refgaps)>1 || !(is.na(refgaps))) {
-    refstarts <- refgaps[refgaps$contig==chrom, "start"]/axisunitbases
-    refends <- refgaps[refgaps$contig==chrom, "end"]/axisunitbases
+    refstarts <- refgaps[refgaps$contig==chrom, "start"]/unitbases
+    refends <- refgaps[refgaps$contig==chrom, "end"]/unitbases
     if (length(refstarts) > 0) {
       rect(refstarts, querymin, refends, querymax, col="gray")
     }
   }
   if (length(querygaps)>1 || !(is.na(querygaps))) {
-    querystarts <- querygaps[querygaps$contig==chrom, "start"]/axisunitbases
-    queryends <- querygaps[querygaps$contig==chrom, "end"]/axisunitbases
+    querystarts <- querygaps[querygaps$contig==chrom, "start"]/unitbases
+    queryends <- querygaps[querygaps$contig==chrom, "end"]/unitbases
     if (length(querystarts) > 0) {
       rect(chrommin, querystarts, chrommax, queryends, col="gray")
     }
@@ -228,9 +251,12 @@ gaplocs <- function(bedfile) {
   return(gaps)
 }
 
-aligns <- readaligns(chromfile)
-chromplotfile <- chromfile
-chromplotfile <- sub(".bed", ".pdf", chromplotfile)
+chromfiles <- list.files(outputdir, pattern = paste(c('.', chromname, '.clusters.bed'), sep="", collapse=""))
+aligns <- c()
+for (file in chromfiles) {
+  aligns <- rbind(aligns, readaligns(paste(c(outputdir, "/", file), sep="", collapse="")))
+}
+chromplotfile <- paste(outputdir, "/", chromname, ".clustered_aligns.pdf", sep="", collapse="")
 
 if (is.na(vertline)) {
   multiplotaligns(aligns, chromlength=chromlength, chromplotfile, refgapfile=refgapfile, querygapfile=querygapfile) 
