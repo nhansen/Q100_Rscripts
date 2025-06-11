@@ -257,7 +257,7 @@ plotmononucerrors <- function(file, plottitle=NA, minlength=NA, maxlength=NA, pc
   }
 }
 
-plotmononucqvscores <- function(file, plottitle=NA, titlecex=1.0, minlength=NA, maxlength=NA, pchval=16, color="black", addtoplot=FALSE, ymax=35, errorbars=FALSE){
+plotmononucqvscores <- function(file, plottitle=NA, titlecex=1.0, minlength=NA, maxlength=NA, pchval=16, color="black", xlabel=c("Mononucleotide run length"), addtoplot=FALSE, ymax=35, errorbars=FALSE){
   mncounts <- readmononuchist(file)
   if(is.na(minlength)) {
     minlength <- min(mncounts$reflength)
@@ -283,7 +283,7 @@ plotmononucqvscores <- function(file, plottitle=NA, titlecex=1.0, minlength=NA, 
     }
   }  
   else {
-    plot(validreflengths, qvarray, pch=pchval, xlab=c("Mononucleotide run length"), ylab=c("Phred QV Score"), main=plottitle, cex.main=titlecex, ylim=c(0,ymax), col=color)
+    plot(validreflengths, qvarray, pch=pchval, xlab=xlabel, ylab=c("Phred QV Score"), main=plottitle, cex.main=titlecex, ylim=c(0,ymax), col=color)
     if (errorbars) {
       arrows(x0=validreflengths, y0=qvlowarray, x1=validreflengths, y1=qvhigharray, code=3, angle=90, length=0.05, col=color)
     }
@@ -338,28 +338,28 @@ read_mononucerror_plot <- function(readsetnames, platformlabels, minlength=10, m
   legend(30, 0.4, platformlabels, col=platformcolors, pch=platformpchvals)
 }
 
-read_mononucqvscore_plot <- function(readsetnames, platformlabels, minlength=NA, maxlength=40, ymax=45, strtype='mononuc', platformcolors=readplatformcolors, errorbars=FALSE, plottitle=NA, titlecex=1.0, legendcex=1.0) {
+read_mononucqvscore_plot <- function(readsetnames, platformlabels, minlength=NA, maxlength=40, xlabel=c("Mononucleotide run length"), ymax=45, strtype='mononuc', platformcolors=readplatformcolors, errorbars=FALSE, plottitle=NA, titlecex=1.0, legendcex=1.0) {
   mnstatsfiles <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".strlengthaccuracy.", strtype, ".txt"), sep="", collapse="")})
   
   if (length(mnstatsfiles)>0) {
-    plotmononucqvscores(mnstatsfiles[1], minlength=10, maxlength=maxlength, pchval=platformpchvals[1], color=platformcolors[1], ymax=ymax, errorbars=errorbars, plottitle=plottitle, titlecex=titlecex)
+    plotmononucqvscores(mnstatsfiles[1], minlength=10, maxlength=maxlength, xlabel=xlabel, pchval=platformpchvals[1], color=platformcolors[1], ymax=ymax, errorbars=errorbars, plottitle=plottitle, titlecex=titlecex)
   }
   if (length(mnstatsfiles)>1) {
     for (i in seq(2, length(mnstatsfiles))) {
-      plotmononucqvscores(mnstatsfiles[i], maxlength=maxlength, pchval=platformpchvals[i], color=platformcolors[i], addtoplot=TRUE, ymax=ymax, errorbars=errorbars)
+      plotmononucqvscores(mnstatsfiles[i], maxlength=maxlength, xlabel=xlabel, pchval=platformpchvals[i], color=platformcolors[i], addtoplot=TRUE, ymax=ymax, errorbars=errorbars)
     }
   }
   legend(32, 42, platformlabels, col=platformcolors, pch=platformpchvals, cex=legendcex)
 }
 
-read_mononuccoverage_plot <- function(mnstatsfiles, platformlabels, maxlength=40, ymax=45, platformcolors=readplatformcolors) {
+read_mononuccoverage_plot <- function(mnstatsfiles, platformlabels, maxlength=40, ymax=45, xlabel=c("Mononucleotide run length"), platformcolors=readplatformcolors) {
   
   if (length(mnstatsfiles)>0) {
-    plotmononuccoveragecounts(mnstatsfiles[1], minlength=10, maxlength=maxlength, pchval=platformpchvals[1], color=platformcolors[1], ymax=ymax)
+    plotmononuccoveragecounts(mnstatsfiles[1], minlength=10, maxlength=maxlength, xlabel=xlabel, pchval=platformpchvals[1], color=platformcolors[1], ymax=ymax)
   }
   if (length(mnstatsfiles)>1) {
     for (i in seq(2, length(mnstatsfiles))) {
-      plotmononuccoveragecounts(mnstatsfiles[i], maxlength=maxlength, pchval=platformpchvals[i], color=platformcolors[i], addtoplot=TRUE, ymax=ymax)
+      plotmononuccoveragecounts(mnstatsfiles[i], maxlength=maxlength, xlabel=xlabel, pchval=platformpchvals[i], color=platformcolors[i], addtoplot=TRUE, ymax=ymax)
     }
   }
   legend(32, 500, platformlabels, col=platformcolors, pch=platformpchvals)
