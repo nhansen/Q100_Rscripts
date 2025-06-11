@@ -3,7 +3,7 @@ setwd("/Users/nhansen/OneDrive/HG002_diploid_benchmark/PaperFigures/Figures")
 library(colorspace)
 library(Hmisc)
 
-source("/Users/nhansen/OneDrive/HG002_diploid_benchmark/all_Rscripts/manuscript_analyses_R_scripts/ReadBenchComparisonPlotFunctions.R")
+source("/Users/nhansen/OneDrive/HG002_diploid_benchmark/Q100_Rscripts/manuscript_analyses_R_scripts/ReadBenchComparisonPlotFunctions.R")
 
 ################
 ### FIGURE 4 ###
@@ -68,9 +68,9 @@ dev.off()
 ### Plot the full figure together:
 pdf("Figure4Output/Figure4Multiplot.pdf", width=13, height=8)
 par(mfrow=c(2,3))
-read_mononucqvscore_plot(readsetnames, platformlabels, strtype='mononuc')
-read_mononucqvscore_plot(readsetnames, platformlabels, strtype='dinuc', minlength=25, plottitle='Accuracy of dinucleotide runs')
-read_mononucqvscore_plot(readsetnames, platformlabels, strtype='trinuc', minlength=25, plottitle='Accuracy trinucleotide runs')
+read_mononucqvscore_plot(readsetnames, platformlabels, strtype='mononuc', xlabel=c("Run length"), ymax=25)
+read_mononucqvscore_plot(readsetnames, platformlabels, strtype='dinuc', ymax=25, minlength=25, xlabel=c("Run length"), plottitle='Accuracy of dinucleotide runs')
+read_mononucqvscore_plot(readsetnames, platformlabels, strtype='trinuc', ymax=25, minlength=25, xlabel=c("Run length"), plottitle='Accuracy trinucleotide runs')
 read_qv_plot(readsetnames, platformlabels)
 read_substitutions_plot(readsetnames, platformlabels, outputdir="Figure4Output")
 read_indels_plot(readsetnames, platformlabels)
