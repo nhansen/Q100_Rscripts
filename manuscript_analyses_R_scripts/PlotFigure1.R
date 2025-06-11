@@ -126,7 +126,7 @@ matlongaligndf <- longall_align_df[str_detect(longall_align_df$chrom1, '^.*MATER
 patlongaligndf <- longall_align_df[str_detect(longall_align_df$chrom1, '^.*PATERNAL.*$' ), ]
 
 # plot all chromosome pairs, with options:
-plot_all_chrom_pairs <- function(genome=benchgenome, linkpanel1=1, linkpanel2=2, aligndf=matlongaligndf, plotchroms=NA, track1=giabnc, wiggleideogram=FALSE, wiggleideogramtopline=FALSE, wiggleideogramcolor="black", ideotrack=censats, centerlow=0.2, centerhigh=0.4, ideoheight=200, data1height=2000, data2height=2000, matloqual=matexcluded, patloqual=patexcluded, loquallow=0.1, loqualhigh=0.4, invert=FALSE, labelsat=NA, labelwidths=NA, chromlabels=NA, plottitle="hg002v1.1") {
+plot_all_chrom_pairs <- function(genome=benchgenome, linkpanel1=1, linkpanel2=2, aligndf=matlongaligndf, plotchroms=NA, track1=giabnc, tracktop=NA, wiggleideogram=FALSE, wiggleideogramtopline=FALSE, wiggleideogramcolor="black", ideotrack=censats, centerlow=0.2, centerhigh=0.4, toplow=0.6, tophigh=0.8, ideoheight=200, data1height=2000, data2height=2000, matloqual=matexcluded, patloqual=patexcluded, loquallow=0.1, loqualhigh=0.4, invert=FALSE, labelsat=NA, labelwidths=NA, chromlabels=NA, plottitle="hg002v1.1") {
 
   # list of chroms in genome without chrM, reversed so sex chroms are at top (right)  
   if (is.na(plotchroms)) {
@@ -140,7 +140,12 @@ plot_all_chrom_pairs <- function(genome=benchgenome, linkpanel1=1, linkpanel2=2,
   matideotrack <- ideotrack[str_detect(as.character(seqnames(ideotrack)), 'MATERNAL')] 
   patideotrack <- ideotrack[str_detect(as.character(seqnames(ideotrack)), 'PATERNAL')] 
   mattrack1 <- track1[str_detect(as.character(seqnames(track1)), 'MATERNAL')] 
-  pattrack1 <- track1[str_detect(as.character(seqnames(track1)), 'PATERNAL')] 
+  pattrack1 <- track1[str_detect(as.character(seqnames(track1)), 'PATERNAL')]
+  
+  if (!is.na(tracktop)) {
+    mattracktop <- tracktop[str_detect(as.character(seqnames(tracktop)), 'MATERNAL')] 
+    pattracktop <- tracktop[str_detect(as.character(seqnames(tracktop)), 'PATERNAL')]
+  }
   
   # establish plot parameters:  
   pp <- getDefaultPlotParams(plot.type=2)
@@ -227,6 +232,10 @@ dev.off()
 
 pdf('Karyoplot_giab.w50000.wiggleblackbarwithtopline.pdf')
 plot_all_chrom_pairs(benchgenome, ideotrack=giab421_w50000_grey, wiggleideogram=TRUE, wiggleideogramtopline=TRUE, track1=filteredcensats, centerlow=0.1, centerhigh=0.5, linkpanel1=1, linkpanel2=2, ideoheight=800, chromlabels=autosomes, labelsat=-0.175, labelwidth=0.058)
+dev.off()
+
+pdf('Karyoplot_giabq100chm13.wiggleblackbar.pdf')
+plot_all_chrom_pairs(benchgenome, ideotrack=giabnc, wiggleideogram=TRUE, track1=filteredcensats, centerlow=0.1, centerhigh=0.5, linkpanel1=1, linkpanel2=2, ideoheight=800, chromlabels=autosomes, labelsat=-0.175, labelwidth=0.058)
 dev.off()
 
 plot_karyoplot_legends <- function(colorscheme) {
