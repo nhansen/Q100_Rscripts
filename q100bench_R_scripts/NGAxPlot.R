@@ -1,17 +1,16 @@
-setwd("/Users/nhansen/HG002_diploid_benchmark/plots/ngaplots")
+setwd("/Users/nhansen/OneDrive/HG002_diploid_benchmark/plots/ngaplots")
 
 args = commandArgs(trailingOnly=TRUE)
 assemblycolors <- c("#44AA99", "#332288", "#882255", "#888888", "#DDCC77", "#661100", "#6699CC")
 methodcolors <- c("#DDCC77", "#661100", "#6699CC")
 
-assemblyname <- ifelse(!( is.na(args[1])), args[1], "assembly")
+assemblyname <- ifelse(!( is.na(args[1])), args[1], "lc24_ul_herro_ulk")
 genomename <- ifelse(!( is.na(args[2])), args[2], "v1.1")
 outputdir <- ifelse(!( is.na(args[3])), args[3], ".")
-plottitle <- ifelse(!( is.na(args[4])), args[4], paste(c("NGAx ", assemblyname, " vs ", genomename), sep="", collapse=""))
-
-assemblylabels <- c("Q28/HiFi Hap1", "Q28/HiFi Hap2", "Q28/bothraw/def Hap1", "Q28/bothraw/def Hap2", "Q28/bothraw/hifiasm Hap1", "Q28/bothraw/hifiasm Hap2")
-assemblysizefiles <- c("q28_hifi_hap1.alignclusterlengths.txt", "q28_hifi_hap2.alignclusterlengths.txt", "q28_both_raw_hap1.alignclusterlengths.txt", "q28_both_raw_hap2.alignclusterlengths.txt", "q28_bothraw_hifiasm_hap1.alignclusterlengths.txt", "q28_bothraw_hifiasm_hap2.alignclusterlengths.txt")
-#assemblysizefiles <- sapply(assemblysizefiles, function(x) {file=paste(c(outputdir, "/", x), sep="", collapse=""); return(file)})
+idealfile <- ifelse(!( is.na(args[4])), args[4], "hg002v1.1.alignclusterlengths.txt")
+plottitle <- ifelse(!( is.na(args[5])), args[5], paste(c("NGAx ", assemblyname, " vs ", genomename), sep="", collapse=""))
+lengthtypes <- c("alignclusterlengths", "contiglengths", "scaffoldlengths")
+assemblysizefiles <- sapply(lengthtypes, function(x) {file=paste(c(outputdir, "/", assemblyname, ".", x, ".txt"), sep="", collapse=""); return(file)})
 
 readlengths <- function(sizefile) {
   clusterlengths <- read.table(sizefile, sep="\t", header=FALSE)
@@ -21,17 +20,17 @@ readlengths <- function(sizefile) {
   return(clusterlengths)
 }
 
-plotclusterlengths <- function(clusterlengths, color="red", title="NGAx", dashed=FALSE, ltyval=NA, cexval=1.0) {
-  xcoords <- append(0, clusterlengths$perc)
+plotlengths <- function(clusterlengths, color="red", title="NGAx", dashed=FALSE, ltyval=NA, cexval=1.0) {
+  xcoords <- append(0, clusterlengths$perc/2)
   ycoords <- c(clusterlengths$clusterlength, 0)
   if (is.na(ltyval)) {
     ltyval <- ifelse(dashed, 2, 1)
   }
-  plot(xcoords, ycoords, type="s", col=color, lty=ltyval, xlim=c(0,100), ylim=c(0,250), xlab="Percent of Haploid Genome", ylab="Aligned length", main=title, cex=cexval)
+  plot(xcoords, ycoords, type="s", col=color, lty=ltyval, xlim=c(0,100), ylim=c(0,250), xlab="Percent of Diploid Genome", ylab="Aligned length", main=title, cex=cexval)
 }
 
 addclusterlengths <- function(clusterlengths, color="blue", dashed=FALSE, ltyval=NA) {
-  xcoords <- append(0, clusterlengths$perc)
+  xcoords <- append(0, clusterlengths$perc/2)
   ycoords <- c(clusterlengths$clusterlength, 0)
   if (is.na(ltyval)) {
     ltyval <- ifelse(dashed, 2, 1)
@@ -43,7 +42,7 @@ addclusterlengths <- function(clusterlengths, color="blue", dashed=FALSE, ltyval
 assembly_ngax_plot <- function(clusterfiles, contigfiles=c(), scaffoldfiles=c(), assemblylabels=c(), ideal=FALSE, haplotype="MAT", plottitle="", cexval=1.0) {
   
   firstclusters <- readlengths(clusterfiles[1]) 
-  plotclusterlengths(firstclusters, col=assemblycolors[1], title=plottitle, lty=1, cexval=cexval)
+  plotlengths(firstclusters, col=assemblycolors[1], title=plottitle, lty=1, cexval=cexval)
   if (length(contigfiles) > 1) {
     firstcontigs <- readlengths(contigfiles[1]) 
     addclusterlengths(firstcontigs, col=assemblycolors[1])    
@@ -60,16 +59,18 @@ assembly_ngax_plot <- function(clusterfiles, contigfiles=c(), scaffoldfiles=c(),
     }
   }
   if (ideal) {
-    ideallengths <- readlengths("Figure3Output/v1.1.mat.alignclusterlengths.txt")
+    ideallengths <- readlengths(idealfile)
     addclusterlengths(ideallengths, col="black")
+    assemblycolors <- c(assemblycolors[1:length(assemblylabels)], "black")
+    assemblylabels <- c(assemblylabels, "Ideal (HG002v1.1)")
   }
-  #legend("topright", assemblylabels, col=assemblycolors, lty=seq(1, length(clusterfiles)))
   legend("topright", assemblylabels, col=assemblycolors, lty=rep(1, length(clusterfiles)))
   
 }
 
 # Make NGAx plot:
-
-pdf("NGAxPlot.pdf")
-assembly_ngax_plot(assemblysizefiles, assemblylabels=assemblylabels, ideal=FALSE, plottitle="NGAx for different assemblies")
+plotname <- paste(c(outputdir, "/", assemblyname, ".continuitystats.pdf"), sep="", collapse="")
+pdf(plotname)
+assembly_ngax_plot(assemblysizefiles, assemblylabels=c("Aligned NGAx", "Contig NGx", "Scaffold NGx"), ideal=TRUE, haplotype=NA, plottitle=paste(c("Continuity stats for ", assemblyname), sep="", col=""))
 dev.off()
+
