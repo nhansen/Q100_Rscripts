@@ -6,7 +6,7 @@ library(Hmisc)
 source("/Users/nhansen/OneDrive/HG002_diploid_benchmark/Q100_Rscripts/manuscript_analyses_R_scripts/ReadBenchComparisonPlotFunctions.R")
 
 ################
-### FIGURE 4 ###
+### FIGURE 5 ###
 ### Sequencing coverage and accuracy of various platforms compared against ###'
 ### the HG002 genome benchmark. [Essential read quality statistics from ###
 ### Nanopore, PacBio, Illumina, Element, etc. illustrating subtle base ###
@@ -98,8 +98,8 @@ dev.off()
 pdf("Figure4Output/Figure4Multiplot.pdf", width=7, height=7)
 par(mfrow=c(2,3))
 read_mononucqvscore_plot(readsetnames, platformlabels, strtype='mononuc', xlabel=c("Run length"), ymax=25)
-read_mononucqvscore_plot(readsetnames, platformlabels, strtype='dinuc', ymax=25, minlength=25, xlabel=c("Run length"), plottitle='Accuracy of dinucleotide runs')
-read_mononucqvscore_plot(readsetnames, platformlabels, strtype='trinuc', ymax=25, minlength=25, xlabel=c("Run length"), plottitle='Accuracy trinucleotide runs')
+#read_mononucqvscore_plot(readsetnames, platformlabels, strtype='dinuc', ymax=25, minlength=25, xlabel=c("Run length"), plottitle='Accuracy of dinucleotide runs')
+#read_mononucqvscore_plot(readsetnames, platformlabels, strtype='trinuc', ymax=25, minlength=25, xlabel=c("Run length"), plottitle='Accuracy trinucleotide runs')
 read_qv_plot(readsetnames, platformlabels)
 read_substitutions_plot(readsetnames, platformlabels, outputdir="Figure4Output")
 read_indels_plot(readsetnames, platformlabels)
@@ -134,6 +134,10 @@ dev.off()
 pdf("ShortReadMononucAccuracy.pdf", width=11, height=11)
 #read_mononucqvscore_plot(shortreadsetnames, shortplatformlabels, errorbars=TRUE, plottitle='Short Read Accuracy of Mononucleotide Runs', titlecex=1.3, legendcex=1.2)
 read_mononucqvscore_plot(shortreadsetnames, shortplatformlabels, errorbars=TRUE, plottitle='', legendcex=1.2)
+dev.off()
+
+pdf("CumulativeBinnedCoverage.pdf", width=7, height=7)
+read_cum_coverage_plot(readsetnames, platformlabels)
 dev.off()
 
 

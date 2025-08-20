@@ -37,7 +37,7 @@ qvalues <- function(errorlist, totallist) {
 # Plot QV statistics: so long as a qvstats file exists at the location outdir/readsetname.errorqvstats.txt, 
 # the read_qv_plot function plots an x/y dot plot of observed vs. reported QV score
 
-read_qv_plot <- function(readsetnames, platformlabels, cexfactor=0.06, plottitle="Read QV score accuracy", errorbars=FALSE, legend=TRUE, legendx=NA, legendy=NA) {
+read_qv_plot <- function(readsetnames, platformlabels, cexfactor=0.06, plottitle="Base quality score accuracy", errorbars=FALSE, legend=TRUE, legendx=NA, legendy=NA) {
   readsetfiles <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".errorqvstats.txt"), sep="", collapse="")})
   maxqvreported <- 0
   for (i in seq(1, length(readsetfiles))) {
@@ -65,7 +65,7 @@ read_qv_plot <- function(readsetnames, platformlabels, cexfactor=0.06, plottitle
     if (is.na(legendy)) {
       legendy = maxqvreported-5
     }  
-    legend(legendx, legendy, platformlabels, pch=filledplatformpchvals, lty=platformlinetype, col=readplatformcolors, pt.bg=readplatformcolors)
+    legend(legendx, legendy, platformlabels, bty="n", pch=filledplatformpchvals, lty=platformlinetype, col=readplatformcolors, pt.bg=readplatformcolors)
   }
   
 }
@@ -142,7 +142,7 @@ read_substitutions_plot <- function(readsetnames, platformlabels, platformcolors
     legendposy <- max(rbind(tivals, tvvals))-200
   }
   if (legend) {
-    legend(legendposx, legendposy, platformlabels, col=platformcolors, pch=15, cex=legendcex)
+    legend(legendposx, legendposy, platformlabels, bty="n", col=platformcolors, pch=15, cex=legendcex)
   }
   #if (legend) {
   #platformtitvlabels <- as.vector(sapply(platformlabels, function(p) {sapply(c('Ti', 'Tv'), function(titv) {paste(p, titv, sep=" ")})}))
@@ -199,7 +199,7 @@ read_indels_plot <- function(indelreadsetnames, platformlabels, platformcolors=r
   if (is.na(legendposy)) {
     legendposy <- max(rbind(totalinsertionrates, totaldeletionrates))-100
   }
-  legend(legendposx, legendposy, platformlabels, col=platformcolors, pch=15, cex=legendcex)
+  legend(legendposx, legendposy, bty="n", platformlabels, col=platformcolors, pch=15, cex=legendcex)
   formattedrates <- as.integer((rbind(totalinsertionrates, totaldeletionrates)+0.5)*10)/10
   formattedrates <- ifelse(formattedrates>100, as.integer(formattedrates), formattedrates)
   text(out, rbind(totalinsertionrates, totaldeletionrates), formattedrates, pos=3, xpd=NA, cex=0.85)
@@ -257,7 +257,7 @@ plotmononucerrors <- function(file, plottitle=NA, minlength=NA, maxlength=NA, pc
   }
 }
 
-plotmononucqvscores <- function(file, plottitle=NA, titlecex=1.0, minlength=NA, maxlength=NA, pchval=16, color="black", xlabel=c("Mononucleotide run length"), addtoplot=FALSE, ymax=35, errorbars=FALSE){
+plotmononucqvscores <- function(file, plottitle=NA, titlecex=1.0, minlength=NA, maxlength=NA, pchval=16, pointcex=1, color="black", xlabel=c("Mononucleotide run length"), plotlines=FALSE, linetype=1, addtoplot=FALSE, ymax=35, errorbars=FALSE){
   mncounts <- readmononuchist(file)
   if(is.na(minlength)) {
     minlength <- min(mncounts$reflength)
@@ -277,15 +277,26 @@ plotmononucqvscores <- function(file, plottitle=NA, titlecex=1.0, minlength=NA, 
   qvhigharray <- as.numeric(-10.0*log10(totalerrorrateconfints$Lower+0.0000000001))
   qvlowarray <- as.numeric(-10.0*log10(totalerrorrateconfints$Upper))
   if (addtoplot) {
-    points(validreflengths, qvarray, pch=pchval, col=color)
+    if (plotlines) {
+      points(validreflengths, qvarray, xlim=c(10,40), type='l', lty=linetype, pch=pchval, col=color)
+    }
+    else {
+      points(validreflengths, qvarray, pch=pchval, col=color, cex=pointcex)
+    }
     if (errorbars) {
-      arrows(x0=validreflengths, y0=qvlowarray, x1=validreflengths, y1=qvhigharray, code=3, angle=90, length=0.05, col=color)
+      arrows(x0=validreflengths, y0=qvlowarray, x1=validreflengths, y1=qvhigharray, code=3, angle=90, length=0, col=color)
     }
   }  
   else {
-    plot(validreflengths, qvarray, pch=pchval, xlab=xlabel, ylab=c("Phred QV Score"), main=plottitle, cex.main=titlecex, ylim=c(0,ymax), col=color)
+    if (plotlines) {
+      plot(validreflengths, qvarray, xlim=c(10,40), ylim=c(0, ymax), type='l', lty=linetype, pch=pchval, col=color, xlab=c("Mononucleotide run length"), ylab=c("Phred QV Score"), main=c("Accuracy of mononucleotide runs"))
+    }
+    else {
+      plot(validreflengths, qvarray, pch=pchval, xlab=xlabel, ylab=c("Phred QV Score"), main=plottitle, cex.main=titlecex, cex=pointcex, ylim=c(0,ymax), col=color)
+    }
+    
     if (errorbars) {
-      arrows(x0=validreflengths, y0=qvlowarray, x1=validreflengths, y1=qvhigharray, code=3, angle=90, length=0.05, col=color)
+      arrows(x0=validreflengths, y0=qvlowarray, x1=validreflengths, y1=qvhigharray, code=3, angle=90, length=0, col=color)
     }
   }
 }
@@ -338,18 +349,51 @@ read_mononucerror_plot <- function(readsetnames, platformlabels, minlength=10, m
   legend(30, 0.4, platformlabels, col=platformcolors, pch=platformpchvals)
 }
 
-read_mononucqvscore_plot <- function(readsetnames, platformlabels, minlength=NA, maxlength=40, xlabel=c("Mononucleotide run length"), ymax=45, strtype='mononuc', platformcolors=readplatformcolors, errorbars=FALSE, plottitle=NA, titlecex=1.0, legendcex=1.0) {
+read_mononucqvscore_plot <- function(readsetnames, platformlabels, minlength=NA, maxlength=40, xlabel=c("Mononucleotide run length"), ymax=45, legendxpos=32, legendypos=42, strtype='mononuc', platformcolors=readplatformcolors, plotlines=FALSE, linetype=1, filledpoints=FALSE, errorbars=FALSE, plottitle=NA, titlecex=1.0, legendcex=1.0) {
   mnstatsfiles <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".strlengthaccuracy.", strtype, ".txt"), sep="", collapse="")})
   
   if (length(mnstatsfiles)>0) {
-    plotmononucqvscores(mnstatsfiles[1], minlength=10, maxlength=maxlength, xlabel=xlabel, pchval=platformpchvals[1], color=platformcolors[1], ymax=ymax, errorbars=errorbars, plottitle=plottitle, titlecex=titlecex)
+    if (filledpoints) {
+      plotmononucqvscores(mnstatsfiles[1], minlength=10, maxlength=maxlength, xlabel=xlabel, pchval=filledplatformpchvals[1], color=platformcolors[1], ymax=ymax, plotlines=plotlines, linetype=linetype, errorbars=errorbars, plottitle=plottitle, titlecex=titlecex, pointcex=multiplevector[1])
+    }
+    else {
+      plotmononucqvscores(mnstatsfiles[1], minlength=10, maxlength=maxlength, xlabel=xlabel, pchval=platformpchvals[1], color=platformcolors[1], ymax=ymax, plotlines=plotlines, linetype=linetype, errorbars=errorbars, plottitle=plottitle, titlecex=titlecex)
+    }
   }
   if (length(mnstatsfiles)>1) {
     for (i in seq(2, length(mnstatsfiles))) {
-      plotmononucqvscores(mnstatsfiles[i], maxlength=maxlength, xlabel=xlabel, pchval=platformpchvals[i], color=platformcolors[i], addtoplot=TRUE, ymax=ymax, errorbars=errorbars)
+      if (filledpoints) {
+        plotmononucqvscores(mnstatsfiles[i], maxlength=maxlength, xlabel=xlabel, pchval=filledplatformpchvals[i], color=platformcolors[i], addtoplot=TRUE, ymax=ymax, plotlines=plotlines, linetype=linetype, errorbars=errorbars, pointcex=multiplevector[i])
+      }
+      else {
+        plotmononucqvscores(mnstatsfiles[i], maxlength=maxlength, xlabel=xlabel, pchval=platformpchvals[i], color=platformcolors[i], addtoplot=TRUE, ymax=ymax, plotlines=plotlines, linetype=linetype, errorbars=errorbars)
+      }
     }
   }
-  legend(32, 42, platformlabels, col=platformcolors, pch=platformpchvals, cex=legendcex)
+  
+  if (plotlines) {
+    legend(legendxpos, legendypos, platformlabels, bty="n", col=platformcolors, lty=linetype, cex=legendcex)
+  } 
+  else {
+    if (filledpoints) {
+      legend(legendxpos, legendypos, platformlabels, bty="n", col=platformcolors, pch=filledplatformpchvals, cex=legendcex, pt.cex=multiplevector)
+    }
+    else {
+      legend(legendxpos, legendypos, platformlabels, bty="n", col=platformcolors, pch=platformpchvals, cex=legendcex)
+    }
+  }
+}
+
+platformstraccuracy <- function(mnhist, platformname) {
+  return(mnhist$platformname)  
+}
+
+read_straccuracy_plot <- function(readsetnames, platformlabels, minlength=25, maxlength=NA, xlabel=c("Accuracy of STRs at least 25 base pairs in length"), ymax=1.0, legendxpos=5, legendypos=1.0, platformcolors=readplatformcolors, plotlines=FALSE, linetype=1, filledpoints=FALSE, errorbars=FALSE, plottitle=NA, titlecex=1.0, legendcex=1.0) {
+  strtype <- "mononuc"
+  mnstatsfiles <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".strlengthaccuracy.", strtype, ".txt"), sep="", collapse="")})
+  platformmnhist <- lapply(mnstatsfiles, function(x) {return(readmononuchist(x))})
+  numcorrecthist <- sapply(readsetnames, function(x) {platformtable <- platformmnhist$x; return(sum(platformtable$numcorrect))})
+  return(platformmnhist)
 }
 
 read_mononuccoverage_plot <- function(mnstatsfiles, platformlabels, maxlength=40, ymax=45, xlabel=c("Mononucleotide run length"), platformcolors=readplatformcolors) {
@@ -363,4 +407,69 @@ read_mononuccoverage_plot <- function(mnstatsfiles, platformlabels, maxlength=40
     }
   }
   legend(32, 500, platformlabels, col=platformcolors, pch=platformpchvals)
+}
+
+# plot cumulative coverage plots for different platforms:
+
+plotcdfcurves <- function(values, valmean=NA, xmax=NA, datacolor='darkgreen', addedcurve=FALSE, xlabel=NA, ylabel=NA, title='Cumulative distribution of binned read coverage') {
+  
+  # sparsify very dense coverage sets because we don't want a huge PDF!
+  if (length(values) > 100000) {
+    values <- sample(values, 100000)    
+  }
+  if (is.na(valmean)) {
+    valmean = mean(values)
+    valmedian = median(values)
+  }
+  if (is.na(xmax)) {
+    xmax = max(values)
+  }
+  if (is.na(xlabel)) {
+    xlabel="Median-shifted, Poisson-normalized read coverage"
+  }
+  if (is.na(ylabel)) {
+    ylabel="Cumulative distribution function"
+  }
+  
+  # center on 0, normalize by Poisson variance, calculate cumulative distribution function 
+  centeredvalues <- values - valmedian
+  normedvalues <- centeredvalues/sqrt(valmean)
+  sortednormedvalues <- sort(normedvalues)
+  cdfvals <- sapply(sortednormedvalues, function(x) {return(length(which(sortednormedvalues<=x))/length(sortednormedvalues))})
+  
+  if (!addedcurve) {
+    # plot "ideal" poisson curve first:
+    poissonvals <- sapply(seq(-1*xmax, xmax), function(x) {ppois(x+valmean, valmean)})
+    plot(seq(-1*xmax, xmax)/sqrt(valmean), poissonvals, type='l', col='blue', xlab=xlabel, ylab='Cumulative distribution function', xlim=c(-5, 5), main=title)
+  }
+  
+  # plot the read coverage data as a step function
+  lines(sortednormedvalues, cdfvals, type='s', col=datacolor)
+  
+  return(sortednormedvalues)
+}
+
+read_cum_coverage_plot <- function(readsetnames, platformlabels, xlabel=c("Median-shifted, Poisson-normalized read bin coverage"), legend=TRUE, legendxpos=2, legendypos=0.5, platformcolors=readplatformcolors, plottitle=NA) {
+  binnedcovfiles <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".binnedcoverage.bed"), sep="", collapse="")})
+  kmercountfiles <- sapply(readsetnames, function(x) {paste(c(outdir, "/", x, ".extremekmercounts.bed"), sep="", collapse="")})
+
+  for (i in seq(1, length(binnedcovfiles))) {
+    covdf <- read.table(binnedcovfiles[i], sep="\t")    
+    names(covdf) <- c("chrom", "start", "end", "arrivalcount")
+    kmerdf <- read.table(kmercountfiles[i], sep="\t")    
+    names(kmerdf) <- c("chrom", "start", "end", "countat", "countag", "countac", "countgc")
+
+    if (i == 1) {
+      plotcdfcurves(covdf$arrivalcount, datacolor=platformcolors[i], title='Cumulative distribution of binned read coverage')
+    }     
+    else {
+      plotcdfcurves(covdf$arrivalcount, addedcurve=TRUE, datacolor=platformcolors[i])
+    }
+  }
+  if (legend) {
+    legendlabels <- append(platformlabels, "Ideal Poisson")
+    legendcolors <- append(platformcolors[1:length(platformlabels)], "blue")
+    legend(legendxpos, legendypos, legendlabels, bty="n", lty=1, col=legendcolors)
+  }
+  return(binnedcovfiles)
 }

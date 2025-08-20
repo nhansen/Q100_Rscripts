@@ -28,7 +28,7 @@ fivewithv2trionames <- c("ash1v2", "hifiasm_2021", "hprc_year1", "hprc_year2_pol
 fivewithv2triolabels <- c("Ash1v2 2020", "Hifiasm 2021", "Yr1 HPRC 2023", "Yr2 HPRC 2024", "Verkko2 Trio 2025")
 ksassemblynames <- c("ash1v2", "hg002v0.1", "hifiasm_2021", "hprc_year1", "hprc_curated", "hprc_year2_polished", "lc24_medaka_6b4_test", "v2_trio", "hprc_year2_v2_thic")
 ksassemblylabels <- c("Ash1v2 2020", "HG002v0.1", "Hifiasm 2021", "Yr1 HPRC 2023", "Jarvis HPRC Curated", "HPRC Release2 HiFiasm", "LC24 ONT Medaka", "Verkko2 Trio 2025", "HPRC Release2 Verkko")
-finalassemblynames <- c("ash1v2", "hifiasm_2021", "hprc_year1", "verkko_2023", "lc24_medaka_6b4_test")
+finalassemblynames <- c("ash1v2", "hifiasm_2021", "hprc_year1", "verkko_2023", "lc24_medaka_6b4")
 finalassemblylabels <- c("Ash1 2020", "Hifiasm 2021", "HPRCv1 2022", "Verkko 2023", "ONT LC24 2024")
 finalshortassemblylabels <- c("Ash1v2", "Hifiasm", "HPRCv1", "Verkko v1", "ONT/LC24")
 # for serge's friday talk Jun 20 2025:
@@ -39,6 +39,11 @@ finalshortassemblylabels <- c("Ash1v2", "Hifiasm", "HPRCv1", "Verkko v1", "ONT/L
 #skassemblynames <- c("verkko_2023", "lc24_nopolish", "lc24_medaka_6b4_test", "hifiasm_ontonly_2025", "verkko_hg002_sequel")
 #skassemblylabels <- c("Verkko 2023", "LC24 Unpolished", "LC24 ONT Medaka", "Hifiasm ONTonly 2025", "Verkko 2.3")
 #skshortassemblylabels <- c("Verkko", "LC24 Unpolished", "LC24 Medaka", "Hifiasm ONTonly", "Verkko 2.3")
+
+# examining continuity of v3_issue-masked hg002v1.1 (vs. other assemblies from figure 3 in the paper):
+maskedassemblynames <- c("ash1v2", "hifiasm_2021", "hprc_year1", "verkko_2023", "lc24_medaka_6b4", "v1.1.v3issuesmasked")
+maskedassemblylabels <- c("Ash1 2020", "Hifiasm 2021", "HPRCv1 2022", "Verkko 2023", "ONT LC24 2024", "Issue-masked v1.1")
+maskedshortassemblylabels <- c("Ash1v2", "Hifiasm", "HPRCv1", "Verkko v1", "ONT/LC24", "Issue-masked")
 
 skassemblynames <- c("verkko_24hr_hic_2.2", "verkko_24hr_hic_2.3")
 skassemblylabels <- c("Verkko 2.2", "Verkko 2.3")
@@ -86,27 +91,32 @@ fiveassemblysizefiles <- sapply(fiveassemblynames, function(x) {file=paste(c("Fi
 fivewithv2triosizefiles <- sapply(fivewithv2trionames, function(x) {file=paste(c("Figure3Output/", x, ".alignclusterlengths.txt"), sep="", collapse=""); return(file)})
 ksassemblysizefiles <- sapply(ksassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".alignclusterlengths.txt"), sep="", collapse=""); return(file)})
 skassemblysizefiles <- sapply(skassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".alignclusterlengths.txt"), sep="", collapse=""); return(file)})
+maskedassemblysizefiles <- sapply(maskedassemblynames, function(x) {file=paste(c("Figure3Output/", x, ".alignclusterlengths.txt"), sep="", collapse=""); return(file)})
 
 # Make NGAx plots:
 
-pdf("Figure3Output/OriginalFourNGAxPlot.pdf")
-assembly_ngax_plot(assemblysizefiles, assemblylabels=assemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
-dev.off()
+#pdf("Figure3Output/OriginalFourNGAxPlot.pdf")
+#assembly_ngax_plot(assemblysizefiles, assemblylabels=assemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+#dev.off()
 
-pdf("Figure3Output/FiveAssemblyNGAxPlot.pdf")
-assembly_ngax_plot(fiveassemblysizefiles, assemblylabels=fiveassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
-dev.off()
+#pdf("Figure3Output/FiveAssemblyNGAxPlot.pdf")
+#assembly_ngax_plot(fiveassemblysizefiles, assemblylabels=fiveassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+#dev.off()
 
-pdf("Figure3Output/FiveWithVerkko2TrioNGAxPlot.pdf")
-assembly_ngax_plot(fivewithv2triosizefiles, assemblylabels=fiveassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
-dev.off()
+#pdf("Figure3Output/FiveWithVerkko2TrioNGAxPlot.pdf")
+#assembly_ngax_plot(fivewithv2triosizefiles, assemblylabels=fiveassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+#dev.off()
 
-pdf("Figure3Output/KitchenSinkNGAxPlot.pdf")
-assembly_ngax_plot(ksassemblysizefiles, assemblylabels=ksassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
-dev.off()
+#pdf("Figure3Output/KitchenSinkNGAxPlot.pdf")
+#assembly_ngax_plot(ksassemblysizefiles, assemblylabels=ksassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+#dev.off()
 
-pdf("Figure3Output/AdamsNGAxPlot.pdf")
-assembly_ngax_plot(finalassemblysizefiles, assemblylabels=finalassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+#pdf("Figure3Output/AdamsNGAxPlot.pdf")
+#assembly_ngax_plot(finalassemblysizefiles, assemblylabels=finalassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
+#dev.off()
+
+pdf("Figure3Output/V1.1IssueMaskedNGAxPlot.pdf")
+assembly_ngax_plot(maskedassemblysizefiles, assemblylabels=maskedassemblylabels, ideal=TRUE, plottitle="NGAx for different assemblies")
 dev.off()
 
 # Mononucleotide accuracy:

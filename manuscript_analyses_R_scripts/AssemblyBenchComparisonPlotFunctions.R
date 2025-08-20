@@ -18,7 +18,7 @@ plotclusterlengths <- function(clusterlengths, color="red", title="NGAx", dashed
     ltyval <- ifelse(dashed, 2, 1)
   }
   if (is.na(xlabel)) {
-    xlabel="Percent of Haploid Genome"
+    xlabel="Percent of Diploid Genome"
   }
   plot(xcoords, ycoords, type="s", col=color, lty=ltyval, xlim=c(0,xmax), ylim=c(0,250), xlab=xlabel, ylab="Aligned length", main=title, cex=cexval)
 }
@@ -45,10 +45,10 @@ plotsingleassemblyresults <- function(clusterfile, contigfile, scaffoldfile, ide
   }
   
   if (ideal) {
-    legend("topright", c("ideal", "NGx (scaffolds)", "NGx (contigs)", "NGAx"), col=c("black", "darkgreen", "blue", "red"), pch=15)
+    legend("topright", c("ideal", "NGx (scaffolds)", "NGx (contigs)", "NGAx"), bty="n", col=c("black", "darkgreen", "blue", "red"), pch=15)
   }
   else {
-    legend("topright", c("NGx (scaffolds)", "NGx (contigs)", "NGAx"), col=c("darkgreen", "blue", "red"), pch=15)
+    legend("topright", c("NGx (scaffolds)", "NGx (contigs)", "NGAx"), bty="n", col=c("darkgreen", "blue", "red"), pch=15)
   }
 }
 
@@ -56,7 +56,7 @@ assembly_ngax_plot <- function(clusterfiles, contigfiles=c(), scaffoldfiles=c(),
   
   firstclusters <- readlengths(clusterfiles[1])
   if (is.na(haplotype)) {
-    plotclusterlengths(firstclusters, col=assemblycolors[1], title=plottitle, lty=1, cexval=cexval, xmax=200, xlabel="Percent of Haploid Genome")
+    plotclusterlengths(firstclusters, col=assemblycolors[1], title=plottitle, lty=1, cexval=cexval, xmax=100, xlabel="Percent of Diploid Genome")
   }
   else {
     plotclusterlengths(firstclusters, col=assemblycolors[1], title=plottitle, lty=1, cexval=cexval, xmax=100)
@@ -81,7 +81,7 @@ assembly_ngax_plot <- function(clusterfiles, contigfiles=c(), scaffoldfiles=c(),
     assemblycolors <- c(assemblycolors[1:length(assemblylabels)], "black")
     assemblylabels <- c(assemblylabels, "Ideal (HG002v1.1)")
   }
-  legend("topright", assemblylabels, col=assemblycolors, lty=rep(1, length(clusterfiles)))
+  legend("topright", assemblylabels, col=assemblycolors, bty="n", lty=rep(1, length(clusterfiles)))
   
 }
 
@@ -142,7 +142,7 @@ assembly_mononucacc_plot <- function(mnstatsfiles=c(), assemblylabels=c(), plott
     }    
   }
   
-  legend(15, 0.6, assemblylabels, col=assemblycolors, pch=pchvalues, pt.cex=ptexp)
+  legend(15, 0.6, assemblylabels, bty="n", col=assemblycolors, pch=pchvalues, pt.cex=ptexp)
 }
 
 assembly_mononucqv_plot <- function(mnstatsfiles=c(), assemblylabels=c(), plottitle="", plotlines=FALSE, linetype=1, errorbars=FALSE, pointcex=1.0) {
@@ -195,10 +195,10 @@ assembly_mononucqv_plot <- function(mnstatsfiles=c(), assemblylabels=c(), plotti
   }
 
   if (plotlines) {
-    legend("topright", assemblylabels, col=assemblycolors, lty=linetype)
+    legend("topright", assemblylabels, bty="n", col=assemblycolors, lty=linetype)
   } 
   else {
-    legend("topright", assemblylabels, col=assemblycolors, pch=pchvalues, pt.cex=pointcex*multiplevector)
+    legend("topright", assemblylabels, bty="n", col=assemblycolors, pch=pchvalues, pt.cex=pointcex*multiplevector)
   }
   #legend(30, 30, assemblylabels, col=assemblycolors, pch=pchvalues)
 }
@@ -233,7 +233,7 @@ plotpartialbarplot <- function(fn, x, y=NULL, barpositions=c(), barlabels=c()){
   return(invisible(tmp.par))
 }
 
-assembly_substitutions_plot <- function(assemblysubsfiles, assemblylabels, xlabval="Assembly", ylabval="Substitutions per mb", ybreak=c(0,0), titleval="", ymax=NA, legendypos=160.0, legend=TRUE, spanmax=21, spanbreak=c(10, 13)) {
+assembly_substitutions_plot <- function(assemblysubsfiles, assemblylabels, cexnames=1.0, xlabval="Assembly", ylabval="Substitutions per mb", ybreak=c(0,0), titleval="", ymax=NA, legendypos=160.0, legendlabels=c(), legend=TRUE, spanmax=21, spanbreak=c(10, 13)) {
   
   # note that the GQC "singlenucerrorstats.txt" output file does *not* include phasing errors, only consensus
   firsthist <- read.table(assemblysubsfiles[1], sep="\t")
@@ -260,12 +260,15 @@ assembly_substitutions_plot <- function(assemblysubsfiles, assemblylabels, xlabv
   }
     
   barcolors <- sapply(assemblycolors, function(x) {c(darken(x), lighten(x, 0.3))})
-    
+
+  if (length(legendlabels) == 0) {
+    legendlabels <- assemblylabels
+  }    
   if (ybreak[1] > 0) {
     lowspan <- c(0, spanbreak[1])
     highspan <- c(spanbreak[2], spanmax)
     plot(c(0,1), c(0,21), type='n', axes=FALSE, xlab="", ylab=ylabval, lwd=7)
-    formattedrates <- as.integer(rbind(tivals, tvvals)*10+0.5)/10
+    formattedrates <- as.character(as.integer(rbind(tivals, tvvals)*10+0.5)/10)
     labelpositions <- rbind(tivals, tvvals)
       
     out <- plotpartialbarplot(barplot(rbind(tivals, tvvals), names.arg=assemblylabelswithtitv, beside=TRUE, col=barcolors, xlab=xlabval, ylim=c(0, ybreak[1]), xpd=FALSE), x=c(0,1), y=lowspan, barpositions=labelpositions, barlabels=formattedrates)
@@ -282,22 +285,24 @@ assembly_substitutions_plot <- function(assemblysubsfiles, assemblylabels, xlabv
     lines(c(0, 0),c(upperbottom, 14))
     lines(c(markerwidth/-2, markerwidth/2), c(upperbottom-markerheight/2, upperbottom+markerheight/2))
     if (legend) {
-      legend("topright", assemblylabels, col=assemblycolors, pch=15)
+      legend("topright", legendlabels, bty="n", col=assemblycolors, pch=15)
     }
-    return(formattedrates)
+    #return(formattedrates)
   }
   else if (is.na(ymax)) {
-    out <- barplot(rbind(tivals, tvvals), names.arg=assemblylabelswithtitv, beside=TRUE, col=barcolors, main=titleval, xlab=xlabval, ylab=ylabval)
+    out <- barplot(rbind(tivals, tvvals), names.arg=assemblylabelswithtitv, beside=TRUE, cex.names=cexnames, col=barcolors, main=titleval, xlab=xlabval, ylab=ylabval)
   }
   else {
-    out <- barplot(rbind(tivals, tvvals), names.arg=assemblylabelswithtitv, beside=TRUE, col=typecolors, main=titleval, xlab=xlabval, ylab=ylabval, ylim=c(0,ymax))
+    out <- barplot(rbind(tivals, tvvals), names.arg=assemblylabelswithtitv, beside=TRUE, cex.names=cexnames, col=typecolors, main=titleval, xlab=xlabval, ylab=ylabval, ylim=c(0,ymax))
   }
-  
+
   if (legend) {
-    legend(out[5], legendypos, assemblylabels, col=assemblycolors, pch=15)
+    legend(out[5], legendypos, legendlabels, bty="n", col=assemblycolors, pch=15)
   }
-  formattedrates <- as.integer(rbind(tivals, tvvals)*10+0.5)/10
-  text(out, rbind(tivals, tvvals), formattedrates, pos=3, xpd=NA)
+  formattedrates <- as.character(as.integer(rbind(tivals, tvvals)*10+0.5)/10)
+  #text(out, rbind(tivals, tvvals), formattedrates, pos=3, xpd=NA)
+  #text(x=out, y=rbind(tivals, tvvals), formattedrates, pos=5, xpd=NA)
+  return(as.integer(rbind(tivals, tvvals)*10+0.5)/10)
   return(out)
 }
 
@@ -321,15 +326,18 @@ totaldeletionrate <- function(indellengthfile) {
   
   return(sum(indellengthhist[indellengthhist$indellength<0, "indelspermbaligned"], na.rm=TRUE))  
 }
-assembly_indels_plot <- function(indellengthfiles, assemblylabels, xlabval="Assembly", ylabval="Indel Errors per mb", legendypos=25.0, titleval="", ymax=NA) {
+assembly_indels_plot <- function(indellengthfiles, assemblylabels, xlabval="Assembly", ylabval="Indel Errors per mb", cexnames=1.0, legendlabels=c(), legendxpos=5, legendypos=25.0, titleval="", ymax=NA) {
   totalinsertionrates <- sapply(indellengthfiles, totalinsertionrate)
   totaldeletionrates <- sapply(indellengthfiles, totaldeletionrate)
   
   assemblylabelswithinsdel <- sapply(assemblylabels, function(x) {label = paste(c("Ins     Del\n", x), sep="", collapse=""); return(label)})
   
   barcolors <- sapply(assemblycolors, function(x) {c(darken(x), lighten(x, 0.3))})
-  out <- barplot(rbind(totalinsertionrates, totaldeletionrates), beside=TRUE, names.arg=assemblylabelswithinsdel, col=barcolors, main=titleval, xlab=xlabval, ylab=ylabval)
-  legend(out[5], legendypos, assemblylabels, col=assemblycolors, pch=15)
+  out <- barplot(rbind(totalinsertionrates, totaldeletionrates), beside=TRUE, names.arg=assemblylabelswithinsdel, cex.names=cexnames, col=barcolors, main=titleval, xlab=xlabval, ylab=ylabval)
+  if (length(legendlabels) == 0) {
+    legendlabels <- assemblylabels
+  }    
+  legend(out[legendxpos], legendypos, legendlabels, bty="n", col=assemblycolors, pch=15)
   formattedrates <- as.integer(rbind(totalinsertionrates, totaldeletionrates)*10+0.5)/10
   text(out, rbind(totalinsertionrates, totaldeletionrates), formattedrates, pos=3, xpd=NA)
   
@@ -367,7 +375,7 @@ assembly_qv_plot <-function(assembly_stats_file, yak_stats_file, merq_stats_file
     }
     barplot(t(cbind(qvs_to_map$yakqv, qvs_to_map$merqqv, qvs_to_map$assemblyqv)), beside=TRUE, names.arg=assemblylabels, cex.names=0.7, col=qvmethodcolors, xlab="Assembly", ylim=c(0, maxqv+20), main=titleval)
     abline(h=benchmarkmerq, lty=3)
-    text(3, benchmarkmerq, "HG002v1.1 Merqury", pos=1)
+    text(5, benchmarkmerq, "HG002v1.1 Merqury", pos=2)
     legend("topright", c("Yak", "Merqury", "GQC Benchmark"), col=qvmethodcolors, pch=15)
   } else {
     barplotmethodcolors <- qvmethodcolors[2:3]
@@ -378,8 +386,8 @@ assembly_qv_plot <-function(assembly_stats_file, yak_stats_file, merq_stats_file
     }
     barplot(t(cbind(qvs_to_map$yakqv, qvs_to_map$merqqv, qvs_to_map$assemblyqv)), beside=TRUE, names.arg=assemblylabels, cex.names=0.7, col=barplotmethodcolors, xlab="Assembly", ylim=c(0, maxqv+20), main=titleval)
     abline(h=benchmarkmerq, lty=3)
-    text(3, benchmarkmerq, "HG002v1.1 Merqury", pos=1)
-    legend("topright", c("Merqury", "GQC Benchmark"), col=barplotmethodcolors, pch=15)
+    text(5, benchmarkmerq, "HG002v1.1 Merqury", pos=2)
+    legend("topright", c("Merqury", "GQC Benchmark"), bty="n", col=barplotmethodcolors, pch=15)
   }
 }
 
@@ -397,7 +405,7 @@ assembly_switchrate_plot <- function(assemblynames, assemblylabels, switchfile=p
   
   assemblyswitchrates <- sapply(assemblynames, function(x) {switchrates[switchrates$Assembly==x, "SwitchRate"]})
   
-  out <- barplot(rev(log10(as.integer(assemblyswitchrates))), names.arg=rev(assemblylabels), las=1, horiz=TRUE, xaxt='n', col=rev(assemblycolors[1:length(assemblynames)]), xlab=c("Errors per megabase"), main=plottitle)
+  out <- barplot(rev(log10(as.numeric(assemblyswitchrates))), names.arg=rev(assemblylabels), las=1, horiz=TRUE, xaxt='n', col=rev(assemblycolors[1:length(assemblynames)]), xlab=c("Errors per megabase"), main=plottitle)
   xval <- c(1, 10, 100, 1000)
   xpos <- log10(xval)
   axis(1, xpos, xval, las=1)
@@ -405,6 +413,33 @@ assembly_switchrate_plot <- function(assemblynames, assemblylabels, switchfile=p
   text(log10(rev(assemblyswitchrates)), out, rev(formattedrates), pos=4, xpd=NA)
   par(mar=defaultmargin)
   
+}
+
+# Routines for plotting sideways barplot of switch rates
+
+assembly_missingness_plot <- function(assemblynames, assemblylabels, missingnessfile=missingfile, plottitle="Uncovered HG002v1.1 bases") {
+  missingbases <- read.table(missingfile, sep="\t", header=FALSE)
+  names(missingbases) <- c("Assembly", "MissingBases")
+  
+  # bottom, left, top, right  
+  defaultmargin <- c(5.1, 4.1, 4.1, 2.1)
+  par(mar = c(5.1, 9.1, 4.1, 4.1))
+  #par(mar = c(5.1, 10.1, 4.1, 4.1))
+  options(scipen=8)
+  
+  assemblymissingrates <- sapply(assemblynames, function(x) {missingbases[missingbases$Assembly==x, "MissingBases"]})
+  assemblymissingrates <- assemblymissingrates/1000000
+  #return(assemblymissingrates) 
+  
+  out <- barplot(rev(log10(as.numeric(assemblymissingrates))), names.arg=rev(assemblylabels), las=1, horiz=TRUE, xaxt='n', col=rev(assemblycolors[1:length(assemblynames)]), xlab=c("Missing bases (Mb)"), main=plottitle)
+  xval <- c(1, 10, 100, 1000)
+  xpos <- log10(xval)
+  axis(1, xpos, xval, las=1)
+  formattedrates <- as.integer(assemblymissingrates*10+0.5)/10
+  text(log10(rev(assemblymissingrates)), out, rev(formattedrates), pos=4, xpd=NA)
+  par(mar=defaultmargin)
+
+  return(assemblymissingrates) 
 }
 
 

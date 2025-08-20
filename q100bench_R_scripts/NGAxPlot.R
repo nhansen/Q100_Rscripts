@@ -82,6 +82,6 @@ assembly_ngax_plot <- function(clusterfiles, contigfiles=c(), scaffoldfiles=c(),
 # Make NGAx plot:
 plotname <- paste(c(outputdir, "/", assemblyname, ".continuitystats.pdf"), sep="", collapse="")
 pdf(plotname)
-assembly_ngax_plot(assemblysizefiles, assemblylabels=c("Aligned NGAx", "Contig NGx", "Scaffold NGx"), ideal=TRUE, haplotype=NA, plottitle=paste(c("Continuity stats for ", assemblyname), sep="", col=""))
+assembly_ngax_plot(assemblysizefiles, assemblylabels=c("Aligned NGAx", "Contig NGx", "Scaffold NGx"), ideal=TRUE, haplotype=NA, plottitle=plottitle)
 dev.off()
 
