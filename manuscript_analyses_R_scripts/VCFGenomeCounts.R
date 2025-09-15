@@ -9,8 +9,8 @@ options(scipen=5)
 qualcolors <- c("#44AA99", "#332288", "#882255", "#888888")
 barcolors <- sapply(qualcolors, function(x) {c(x, x)})
 
-errorstats <- read.table("totalhcbasesandvariantcounts.txt", sep="\t")
-names(errorstats) <- c("ref", "mingq", "covered", "totalerrors", "snperrors", "indelerrors")
+errorstats <- read.table("totalhcbasesandvariantcounts.v3issues.txt", sep="\t")
+names(errorstats) <- c("ref", "mingq", "covered", "mergedcovered", "totalerrors", "snperrors", "indelerrors")
 
 errorstats$percentcovered <- errorstats$covered/5999408148
 errorstats$totalqv <- -10.0*log10(errorstats$totalerrors/errorstats$covered)

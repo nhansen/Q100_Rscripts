@@ -1,4 +1,4 @@
-#setwd("/Users/nhansen/HG002_diploid_benchmark/plots")
+setwd("/Users/nhansen/OneDrive/HPRC_assembly_comparison/data_for_Rplots/alignplots/testcoverage")
 
 #if (!requireNamespace("BiocManager", quietly = TRUE))
   #install.packages("BiocManager")
